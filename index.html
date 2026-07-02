@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Solstice International Realty · Donna Bohana — Coastal California Luxury</title>
+<meta name="description" content="Boutique luxury real estate across Malibu, Pacific Palisades, Westlake Village & the California coast. Search live MLS listings with Donna Bohana, Broker/Owner.">
+<link rel="icon" href="https://solsticeir.com/wp-content/uploads/2026/06/cropped-main-logo-32x32.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=zodiak@400,401,500,700,701&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/theme.css?v=19">
+<script src="js/atmos-ui.js?v=2"></script>
+</head>
+<body>
+
+<!-- NAV — single-line editorial masthead -->
+<header class="nav">
+  <div class="wrap masthead">
+    <a class="m-brand" href="#top">
+      <span class="m-word">SOLSTICE</span>
+      <span class="m-div"></span>
+      <span class="m-sub">International Realty</span>
+    </a>
+    <nav class="nb-links">
+      <a href="#listings-sec">Listings</a>
+      <a href="#communities">Communities</a>
+      <a href="#valuation">Home Value</a>
+      <a href="#about">About</a>
+      <a href="#reviews">Reviews</a>
+      <a href="#contact">Contact</a>
+    </nav>
+    <div class="m-right">
+      <button class="m-link" onclick="showFavs()">♥ <span id="favCount">0</span></button>
+      <a class="m-link m-tel" href="tel:3108010265">(310) 801-0265</a>
+      <a class="nb-cta" href="#contact">Work With Donna <span>→</span></a>
+      <button class="burger" id="burger">☰</button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-menu" id="mobileMenu">
+  <button class="close" id="mClose">✕</button>
+  <a href="#listings-sec">Listings</a><a href="#communities">Communities</a>
+  <a href="#valuation">Home Value</a><a href="#about">About Donna</a>
+  <a href="#reviews">Reviews</a><a href="#contact">Contact</a>
+  <a class="btn btn-gold" href="tel:3108010265">Call (310) 801-0265</a>
+</div>
+
+<!-- HERO -->
+<section class="hero" id="top">
+  <div class="hero-bg" id="heroCinema">
+    <div class="hero-slide on"><img src="assets/img/hero.jpg" alt="Coastal California"></div>
+    <div class="hero-slide"><img src="assets/img/malibu.jpg" alt="Malibu"></div>
+    <div class="hero-slide"><img src="assets/img/palisades.jpg" alt="Pacific Palisades"></div>
+    <div class="hero-slide"><img src="assets/img/manhattan.jpg" alt="Manhattan Beach"></div>
+    <div class="hero-slide"><img src="assets/img/newport.jpg" alt="Newport Beach"></div>
+  </div>
+  <div class="wrap hero-inner">
+    <div class="hero-topline reveal in">
+      <span>Malibu · Pacific Palisades · Westlake Village · The Coast</span>
+      <span class="tl-right">DRE# 01194141</span>
+    </div>
+    <h1 class="serif-xl hero-head reveal in">Coastal California living,<br><span class="gold">curated for the few.</span></h1>
+
+    <p class="lede reveal in">Boutique representation from Donna Bohana — 20+ years, record-breaking sales, and an eye for the extraordinary. Tell us what you're dreaming of.</p>
+
+    <!-- SEARCH -->
+    <div class="ai-search reveal in">
+      <div class="ai-row">
+        <span class="ai-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="16.5" y1="16.5" x2="21" y2="21"></line></svg></span>
+        <input id="aiInput" type="text" aria-label="Search homes" placeholder="Search homes…">
+        <button class="btn btn-gold" id="aiGo">Search</button>
+      </div>
+      <div class="ai-chips">
+        <span class="ai-chips-tag">Try</span>
+        <button data-q="oceanfront in Malibu under 20m">Oceanfront Malibu</button>
+        <button data-q="4 bed waterfront for lease">Waterfront leases</button>
+        <button data-q="modern estate in Pacific Palisades">Palisades estates</button>
+        <button data-q="lakefront in Westlake Village">Lakefront homes</button>
+        <button data-q="newest listings with a pool">New + pool</button>
+      </div>
+      <div class="ai-alt">Prefer to browse? <a href="#listings-sec">See all homes &amp; filters ↓</a></div>
+    </div>
+
+    <div class="hero-statrow reveal in">
+      <div><b data-count>$2B+</b><span>Lifetime Sales</span></div>
+      <div><b data-count>Top 2%</b><span>Agents Worldwide</span></div>
+      <div><b data-count>20+ yrs</b><span>Coastal Expertise</span></div>
+      <div><b>Off-Market</b><span>Private Access</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- COMMUNITIES -->
+<section class="sec band" id="communities">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">Where we serve</div>
+      <h2>LA's most exclusive addresses</h2>
+      <p>From Malibu's 27 miles of coastline to the guard-gated estates of Westlake Village — tap a community to explore its listings.</p>
+    </div>
+    <div class="comm-grid reveal" id="commGrid"></div>
+  </div>
+</section>
+
+<!-- LISTINGS -->
+<section class="sec" id="listings-sec">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The collection</div>
+      <h2>Featured &amp; live listings</h2>
+      <p>Donna's curated coastal portfolio — plus live MLS search you can flip on with one tap.</p>
+    </div>
+
+    <div class="controls reveal">
+      <select id="fCommunity"><option value="">All Communities</option></select>
+      <select id="fType"><option value="">Buy or Lease</option><option>For Sale</option><option>For Lease</option></select>
+      <select id="fBeds"><option value="">Beds</option><option value="2">2+</option><option value="3">3+</option><option value="4">4+</option><option value="5">5+</option></select>
+      <select id="fBaths"><option value="">Baths</option><option value="2">2+</option><option value="3">3+</option><option value="4">4+</option></select>
+      <select id="fPrice"><option value="">Any Price</option><option value="0-3000000">Under $3M</option><option value="3000000-6000000">$3M–$6M</option><option value="6000000-10000000">$6M–$10M</option><option value="10000000-999000000">$10M+</option></select>
+      <select id="fSort"><option value="price-desc">Price: High → Low</option><option value="price-asc">Price: Low → High</option><option value="year-desc">Newest Built</option><option value="sqft-desc">Largest</option></select>
+      <div class="result-meta">
+        <div class="src-toggle">
+          <span id="srcLabel">Solstice featured</span>
+          <div class="switch" id="srcSwitch" title="Toggle live MLS feed"><b></b></div>
+        </div>
+        <div class="seg view-seg"><button class="on" data-view="grid">Grid</button><button data-view="map">Map</button></div>
+        <span><b class="gold" id="count">0</b> homes</span>
+      </div>
+    </div>
+
+    <div id="gridWrap"><div class="listings" id="listings"></div></div>
+    <div id="mapWrap" style="display:none"><div id="map"></div></div>
+  </div>
+</section>
+
+<!-- VALUATION -->
+<section class="sec band-cream" id="valuation">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <div class="eyebrow">Sell with Solstice</div>
+      <h2>What's your home worth today?</h2>
+      <p>Get an instant estimate powered by local coastal comps — then let Donna refine it with a private, no-obligation valuation.</p>
+    </div>
+    <div class="val-card reveal">
+      <label style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);font-weight:600">Property Address</label>
+      <div class="val-input">
+        <input id="valAddr" type="text" placeholder="e.g. 27400 Pacific Coast Hwy, Malibu">
+        <button class="btn btn-gold" onclick="runValuation()">Get Instant Value</button>
+      </div>
+      <div class="val-result" id="valResult">
+        <div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);margin-bottom:.4rem">Estimated value in <span id="valComm">your area</span></div>
+        <div class="val-num" id="valNum">$0</div>
+        <div class="val-bar"><b id="valBar"></b></div>
+        <div class="val-range" id="valRange"></div>
+        <a class="btn btn-gold" href="#contact" style="margin-top:1.4rem">Get Donna's Expert Valuation</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section class="sec" id="about">
+  <div class="wrap about">
+    <div class="about-img reveal"><img src="assets/img/donna-headshot.jpg" style="object-position:center 18%"
+      onerror="this.src='assets/img/donna-portrait.jpg'" alt="Donna Bohana, Broker/Owner of Solstice International Realty"></div>
+    <div class="reveal">
+      <div class="eyebrow">Broker / Owner</div>
+      <h2 style="font-size:clamp(2rem,4.6vw,3.2rem);margin:.5rem 0 1rem">Donna Bohana</h2>
+      <p style="color:#c3c9c1;line-height:1.8">An award-winning luxury specialist and founder of Solstice International Realty, Donna has spent two decades representing the California coast's most discerning buyers and sellers. Ranked in the top 2% of agents worldwide, she's known for record-breaking sales, absolute discretion, and quiet access to off-market estates — trusted by celebrities, executives, and families who value privacy above all.</p>
+      <div class="about-stats">
+        <div><div class="n" data-count>$2B+</div><div class="l">In Sales</div></div>
+        <div><div class="n" data-count>Top 2%</div><div class="l">Worldwide</div></div>
+        <div><div class="n" data-count>Est. 2007</div><div class="l">Boutique Brokerage</div></div>
+      </div>
+      <div class="press"><span>Forbes</span><span>LA Times</span><span>HGTV</span></div>
+      <div style="margin-top:1.8rem;display:flex;gap:.8rem;flex-wrap:wrap">
+        <a class="btn btn-gold" href="#contact">Book a Consultation</a>
+        <a class="btn btn-ghost" href="tel:3108010265">(310) 801-0265</a>
+      </div>
+      <div class="dre" style="margin-top:1rem">DRE# 01194141</div>
+    </div>
+  </div>
+</section>
+
+<!-- REVIEWS -->
+<section class="sec band" id="reviews">
+  <div class="wrap">
+    <div class="sec-head center reveal">
+      <div class="eyebrow">Client stories</div>
+      <h2>Five-star, every time</h2>
+    </div>
+    <div class="quotes reveal">
+      <div class="quote"><div class="stars">★★★★★</div><p>"After the incredible service Donna provided in helping us find our first two homes, there was never a question of who we'd call again. She is simply the best."</p><div class="by">— Repeat Malibu Client</div></div>
+      <div class="quote"><div class="stars">★★★★★</div><p>"Donna's discretion and negotiation were flawless. She found us an off-market estate we never would have seen and closed it quietly and quickly."</p><div class="by">— Private Buyer, Pacific Palisades</div></div>
+      <div class="quote"><div class="stars">★★★★★</div><p>"She broke the neighborhood record on our sale. Marketing, staging, strategy — every detail was elevated. A true professional."</p><div class="by">— Seller, Westlake Village</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT / CONCIERGE -->
+<section class="sec" id="contact">
+  <div class="wrap concierge">
+    <div class="reveal">
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.6rem">
+        <img src="assets/img/donna-headshot.jpg" alt="Donna Bohana" style="width:74px;height:74px;border-radius:50%;object-fit:cover;object-position:center 15%;border:1px solid var(--glass-brd);box-shadow:0 0 30px -6px rgba(201,169,110,.5)">
+        <div>
+          <div style="font-family:var(--serif);font-weight:700;font-size:1.2rem;color:var(--cream)">Donna Bohana</div>
+          <div style="font-family:var(--mono);font-size:.68rem;letter-spacing:.14em;color:var(--gold)">BROKER / OWNER · DRE# 01194141</div>
+        </div>
+      </div>
+      <div class="eyebrow">Private concierge</div>
+      <h2 style="font-size:clamp(2rem,4.6vw,3rem);margin:.5rem 0 1.2rem">Let's find your place on the coast</h2>
+      <p style="color:#c3c9c1">Whether you're buying, selling, or leasing, Donna offers white-glove, one-on-one representation. Reach out for a confidential conversation.</p>
+      <div style="margin-top:2rem">
+        <div class="contact-line"><div class="ic">✆</div><div><a href="tel:3108010265">(310) 801-0265</a></div></div>
+        <div class="contact-line"><div class="ic">✉</div><div><a href="mailto:info@solsticeir.com">info@solsticeir.com</a></div></div>
+        <div class="contact-line"><div class="ic">◎</div><div>23465 Civic Center Way, Building 9<br>Malibu, CA 90265</div></div>
+      </div>
+    </div>
+    <form class="reveal" onsubmit="return submitContact(event)">
+      <div class="form-row">
+        <input id="cName" type="text" placeholder="Full name" required>
+        <input type="email" placeholder="Email" required>
+      </div>
+      <div class="form-row">
+        <input type="tel" placeholder="Phone">
+        <select><option value="">I'm interested in…</option><option>Buying</option><option>Selling</option><option>Leasing</option><option>A valuation</option></select>
+      </div>
+      <textarea id="cMsg" placeholder="Tell Donna what you're looking for…"></textarea>
+      <button class="btn btn-gold" type="submit" style="margin-top:1rem;width:100%;justify-content:center">Send to Donna</button>
+      <div class="dre" style="text-align:center;margin-top:.8rem">Your information is kept strictly confidential.</div>
+    </form>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div>
+        <div class="brand" style="margin-bottom:.8rem"><span class="bt gold">SOLSTICE<small style="color:var(--muted)">INTERNATIONAL REALTY</small></span></div>
+        <div>Boutique luxury real estate<br>on the California coast.</div>
+        <div class="dre">Donna Bohana · Broker/Owner · DRE# 01194141</div>
+      </div>
+      <div><b class="gold" style="font-family:var(--serif);font-size:1.1rem">Explore</b>
+        <a href="#listings-sec">Listings</a><a href="#communities">Communities</a><a href="#valuation">Home Value</a><a href="#about">About</a></div>
+      <div><b class="gold" style="font-family:var(--serif);font-size:1.1rem">Communities</b>
+        <a onclick="filterByCommunity('Malibu')">Malibu</a><a onclick="filterByCommunity('Pacific Palisades')">Pacific Palisades</a><a onclick="filterByCommunity('Westlake Village')">Westlake Village</a><a onclick="filterByCommunity('Newport Beach')">Newport Beach</a></div>
+      <div><b class="gold" style="font-family:var(--serif);font-size:1.1rem">Contact</b>
+        <a href="tel:3108010265">(310) 801-0265</a><a href="mailto:info@solsticeir.com">info@solsticeir.com</a><a>Malibu, CA 90265</a></div>
+    </div>
+    <div style="border-top:1px solid var(--line);padding-top:1.4rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem">
+      <span>© 2026 Solstice International Realty. All rights reserved.</span>
+      <span>Equal Housing Opportunity · Listings shown are illustrative demo data.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- COMPARE TRAY -->
+<div class="cmp-tray" id="cmpTray">
+  <span style="font-size:.82rem;color:var(--gold-soft)">Compare <b id="cmpCount">0</b></span>
+  <div class="items" id="cmpItems"></div>
+  <button class="btn btn-gold" style="padding:.55rem 1rem" onclick="openCompare()">Compare</button>
+  <button class="btn btn-ghost" style="padding:.55rem 1rem" onclick="clearCompare()">Clear</button>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="overlay" id="overlay"><div class="modal" id="modalContent"></div></div>
+
+<div class="toast" id="toast"></div>
+
+<!-- libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://unpkg.com/globe.gl"></script>
+<!-- Leaflet loaded LAST among libs so nothing can clobber its global `L` -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- app core -->
+<script src="js/data.js?v=2"></script>
+<script src="js/idx.js?v=2"></script>
+<script src="js/api.js?v=1"></script>
+<script src="js/app.js?v=3"></script>
+<!-- immersive layer -->
+<script defer src="js/atmosphere.js?v=2"></script>
+<script defer src="js/globe.js"></script>
+<script defer src="js/motion.js?v=3"></script>
+<script>
+  // populate community grid + filter dropdown from data
+  (function(){
+    const { COMMUNITIES } = window.SOLSTICE;
+    document.getElementById("commGrid").innerHTML = COMMUNITIES.map(c =>
+      `<div class="comm" onclick="filterByCommunity('${c.key}')">
+        <img loading="lazy" src="${c.img}" alt="${c.key}">
+        <div class="lab"><div class="n">${c.key}</div><div class="b">${c.blurb}</div></div>
+      </div>`).join("");
+    const sel = document.getElementById("fCommunity");
+    COMMUNITIES.forEach(c => { const o = document.createElement("option"); o.value = c.key; o.textContent = c.key; sel.appendChild(o); });
+  })();
+
+  // Sleek typewriter placeholder — cycles real searches (no corny "AI" badge)
+  (function(){
+    const input = document.getElementById("aiInput");
+    if (!input) return;
+    const phrases = [
+      "Oceanfront in Malibu under $15M",
+      "A waterfront lease for the summer",
+      "Modern estate with a pool & views",
+      "5 bedrooms in Pacific Palisades",
+      "Newest listings on the sand"
+    ];
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) { input.placeholder = phrases[0]; return; }
+    let pi = 0, ci = 0, deleting = false;
+    function tick(){
+      if (document.activeElement === input || input.value) { input.placeholder = "Search homes…"; return setTimeout(tick, 1200); }
+      const p = phrases[pi];
+      if (!deleting) {
+        ci++; input.placeholder = p.slice(0, ci);
+        if (ci >= p.length) { deleting = true; return setTimeout(tick, 1700); }
+      } else {
+        ci--; input.placeholder = p.slice(0, ci);
+        if (ci <= 0) { deleting = false; pi = (pi + 1) % phrases.length; }
+      }
+      setTimeout(tick, deleting ? 34 : 60);
+    }
+    setTimeout(tick, 800);
+  })();
+
+  // Cinematic hero: keyframe Ken-Burns crossfade (restarts cleanly every slide)
+  (function(){
+    const slides = [].slice.call(document.querySelectorAll("#heroCinema .hero-slide"));
+    if (!slides.length) return;
+    // warm the cache so the first cycle never pops in
+    slides.forEach(s => { const im = s.querySelector("img"); if (im && !im.complete) { const p = new Image(); p.src = im.src; } });
+    const reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let dir = true;
+    function activate(slide){
+      slide.classList.add("on");
+      if (reduce) return;
+      const img = slide.querySelector("img");
+      if (!img) return;
+      img.classList.remove("kb-a", "kb-b");
+      void img.offsetWidth; // reflow → keyframes restart from frame 0
+      img.classList.add(dir ? "kb-a" : "kb-b");
+      dir = !dir;
+    }
+    activate(slides[0]);
+    if (reduce || slides.length < 2) return;
+    let i = 0, timer = null;
+    function advance(){
+      slides[i].classList.remove("on");
+      i = (i + 1) % slides.length;
+      activate(slides[i]);
+      schedule();
+    }
+    function schedule(){
+      clearTimeout(timer);
+      timer = setTimeout(advance, 6200);
+    }
+    // pause while hidden so ticks never queue up and burst-fire on return
+    document.addEventListener("visibilitychange", function(){
+      if (document.hidden) clearTimeout(timer);
+      else schedule();
+    });
+    if (!document.hidden) schedule();
+  })();
+</script>
+</body>
+</html>
