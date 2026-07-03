@@ -364,38 +364,9 @@ async function runAI(text) {
   }
 }
 
-/* ---------- HOME VALUATION (instant estimate) ---------- */
-window.runValuation = () => {
-  const addr = $("#valAddr").value.trim();
-  if (!addr) return toast("Enter a property address");
-  const res = $("#valResult");
-  res.classList.remove("show"); $("#valNum").textContent = "…";
-  // deterministic pseudo-estimate from address + community comps
-  let seed = 0; for (const c of addr.toLowerCase()) seed = (seed * 31 + c.charCodeAt(0)) % 1e7;
-  const commHit = COMMUNITIES.find(c => addr.toLowerCase().includes(c.key.toLowerCase()));
-  const base = commHit ? { "Malibu": 12.5, "Pacific Palisades": 9.5, "Manhattan Beach": 11, "Newport Beach": 8.5,
-    "Westlake Village": 4.2, "Venice": 5.5, "Brentwood": 7, "Hollywood Hills": 6 }[commHit.key] : 5;
-  const est = (base + (seed % 400) / 100) * 1e6;
-  const lo = est * 0.92, hi = est * 1.09;
-  // record the valuation interest as a lead (non-blocking, best-effort)
-  try { if (window.SIR_API) SIR_API.apiLead({ kind: "valuation", address: addr, estimate: Math.round(est), meta: { community: commHit ? commHit.key : null } }).catch(() => {}); } catch (e) {}
-  setTimeout(() => {
-    res.classList.add("show");
-    $("#valBar").style.width = "0";
-    animateNum($("#valNum"), est);
-    $("#valRange").textContent = `Estimated range ${fmt$(lo)} – ${fmt$(hi)}`;
-    $("#valComm").textContent = commHit ? commHit.key : "your area";
-    requestAnimationFrame(() => $("#valBar").style.width = "68%");
-  }, 650);
-};
-function animateNum(el, target) {
-  const start = performance.now(), dur = 1400;
-  const step = t => { const p = Math.min(1, (t - start) / dur); const e = 1 - Math.pow(1 - p, 3);
-    el.textContent = fmt$(target * e); if (p < 1) requestAnimationFrame(step); };
-  requestAnimationFrame(step);
-  // safety net: if rAF is throttled (bg tab), still land on the final value
-  setTimeout(() => { el.textContent = fmt$(target); }, dur + 120);
-}
+/* ---------- HOME VALUATION ----------
+   Moved to js/valuation.js — now a real geocoding + comps estimate,
+   not a hash of the address string. window.runValuation lives there. */
 
 /* ---------- MISC ---------- */
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2600); }

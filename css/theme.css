@@ -333,10 +333,12 @@ footer{font-size:.88rem; color:#aab2ab}
   .md-facts{gap:1.1rem}
   .modal-thumbs img{height:52px; width:78px}
 
-  /* valuation: stacked input + full-width button */
+  /* valuation: address full-width, sqft on its own row, beds+baths paired */
   .val-input{flex-direction:column}
   .val-input input{min-width:0}
-  .val-input .btn{width:100%; justify-content:center}
+  .val-fields{grid-template-columns:1fr 1fr; gap:.6rem}
+  .val-fields .vf:first-child{grid-column:1 / -1}
+  .val-num{font-size:clamp(2.4rem,12vw,3.4rem)}
 
   /* compare tray: full-width sheet */
   .cmp-tray{left:12px; right:12px; transform:translateY(130%); max-width:none; flex-wrap:wrap; gap:.6rem; padding:.85rem 1rem}

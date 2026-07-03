@@ -12,7 +12,7 @@
 <link href="https://api.fontshare.com/v2/css?f[]=zodiak@400,401,500,700,701&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="css/styles.css">
-<link rel="stylesheet" href="css/theme.css?v=19">
+<link rel="stylesheet" href="css/theme.css?v=20">
 <script src="js/atmos-ui.js?v=2"></script>
 </head>
 <body>
@@ -147,16 +147,41 @@
       <p>Get an instant estimate powered by local coastal comps — then let Donna refine it with a private, no-obligation valuation.</p>
     </div>
     <div class="val-card reveal">
-      <label style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);font-weight:600">Property Address</label>
+      <label class="val-label" for="valAddr">Property Address</label>
       <div class="val-input">
-        <input id="valAddr" type="text" placeholder="e.g. 27400 Pacific Coast Hwy, Malibu">
-        <button class="btn btn-gold" onclick="runValuation()">Get Instant Value</button>
+        <input id="valAddr" type="text" autocomplete="street-address" placeholder="e.g. 27400 Pacific Coast Hwy, Malibu">
       </div>
+      <div class="val-fields">
+        <div class="vf">
+          <label class="val-label" for="valSqft">Living area</label>
+          <input id="valSqft" type="text" inputmode="numeric" autocomplete="off" placeholder="Sq ft — e.g. 4,200">
+        </div>
+        <div class="vf">
+          <label class="val-label" for="valBeds">Bedrooms</label>
+          <select id="valBeds">
+            <option value="0">Beds</option>
+            <option>2</option><option>3</option><option selected>4</option>
+            <option>5</option><option>6</option><option value="7">7+</option>
+          </select>
+        </div>
+        <div class="vf">
+          <label class="val-label" for="valBaths">Bathrooms</label>
+          <select id="valBaths">
+            <option value="0">Baths</option>
+            <option>2</option><option>3</option><option selected>4</option>
+            <option>5</option><option>6</option><option value="7">7+</option>
+          </select>
+        </div>
+      </div>
+      <button id="valGo" class="btn btn-gold val-go" onclick="runValuation()">Get Instant Estimate</button>
+      <p class="val-note">Estimate uses live address geocoding + local coastal comps. Not a formal appraisal.</p>
       <div class="val-result" id="valResult">
-        <div style="font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--sage);margin-bottom:.4rem">Estimated value in <span id="valComm">your area</span></div>
+        <div class="val-elabel">Estimated value in <span id="valComm">your area</span></div>
         <div class="val-num" id="valNum">$0</div>
         <div class="val-bar"><b id="valBar"></b></div>
         <div class="val-range" id="valRange"></div>
+        <div class="val-basis" id="valBasis"></div>
+        <div class="val-matched" id="valMatched"></div>
         <a class="btn btn-gold" href="#contact" style="margin-top:1.4rem">Get Donna's Expert Valuation</a>
       </div>
     </div>
@@ -284,7 +309,8 @@
 <script src="js/data.js?v=2"></script>
 <script src="js/idx.js?v=2"></script>
 <script src="js/api.js?v=1"></script>
-<script src="js/app.js?v=3"></script>
+<script src="js/app.js?v=4"></script>
+<script src="js/valuation.js?v=1"></script>
 <!-- immersive layer -->
 <script defer src="js/atmosphere.js?v=2"></script>
 <script defer src="js/globe.js"></script>
