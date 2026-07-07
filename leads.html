@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Solstice CRM · Lead Radar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0c0b;--panel:#111412;--surface:rgba(255,255,255,.045);--surface2:rgba(255,255,255,.08);
+    --line:rgba(255,255,255,.1);--line2:rgba(255,255,255,.16);--tx:#f3f5f1;--tx2:#a9afa6;--tx3:#767c73;
+    --au:#c9a96e;--au2:#e3cfa4;--r:16px;--sans:"Sora",-apple-system,sans-serif;--body:"Manrope",-apple-system,sans-serif;
+    --s-new:#7db4ff;--s-contacted:#e3cfa4;--s-qualified:#6fd3a6;--s-nurturing:#b79cff;--s-won:#5fd07a;--s-lost:#e08a8a;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--body);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 16px 100px}
+  button{font-family:var(--sans);cursor:pointer;border:none;border-radius:999px;font-weight:600;transition:.18s}
+  input,select,textarea{font-family:var(--body);font-size:15px}
+  .btn-gold{background:var(--au);color:#1a1610;padding:.62rem 1.2rem}
+  .btn-gold:hover{background:var(--au2)}
+  .btn-ghost{background:var(--surface);color:var(--tx);border:1px solid var(--line);padding:.55rem 1rem}
+  .btn-ghost:hover{background:var(--surface2);border-color:var(--line2)}
+  a{color:var(--au2)}
+
+  /* header */
+  .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+  .brand{font-family:var(--sans);font-weight:700;font-size:1.35rem;letter-spacing:.01em}
+  .brand .r{color:var(--au);font-weight:500}
+  .sub{color:var(--tx2);font-size:.9rem;margin:2px 0 18px}
+
+  /* stat tiles */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px}
+  .stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+  .stat .n{font-family:var(--sans);font-weight:800;font-size:1.7rem;line-height:1}
+  .stat .l{font-size:.74rem;color:var(--tx2);margin-top:5px;letter-spacing:.02em}
+  .stat.hot .n{color:#ff9a62}.stat.due .n{color:var(--au2)}.stat.won .n{color:var(--s-won)}
+
+  /* pipeline bar */
+  .pipe{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none}
+  .pipe::-webkit-scrollbar{display:none}
+  .stg{flex:none;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:.5rem .95rem;color:var(--tx2);font-family:var(--body);font-weight:600;font-size:.85rem;white-space:nowrap}
+  .stg.on{background:var(--au);color:#1a1610;border-color:var(--au)}
+  .stg .c{opacity:.6;font-weight:500;margin-left:5px}
+  .stg.on .c{opacity:.75}
+
+  /* temperature filter + badges */
+  .temps{display:flex;gap:7px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;scrollbar-width:none}
+  .temps::-webkit-scrollbar{display:none}
+  .tchip{flex:none;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:.5rem .95rem;color:var(--tx2);font-weight:600;font-size:.85rem;white-space:nowrap;cursor:pointer;font-family:var(--body)}
+  .tchip.on{background:var(--tx);color:#0a0c0b;border-color:var(--tx)}
+  .tchip.on.hot{background:#ff7a54;border-color:#ff7a54;color:#1a0f0a}
+  .tchip .c{opacity:.55;font-weight:500;margin-left:5px}
+  .badge{font-size:.66rem;font-weight:800;letter-spacing:.04em;padding:.24rem .55rem;border-radius:999px;display:inline-flex;align-items:center;gap:4px}
+  .b-hot{background:rgba(255,110,70,.16);color:#ff8a5c;box-shadow:inset 0 0 0 1px rgba(255,110,70,.35)}
+  .b-warm{background:rgba(227,207,164,.14);color:var(--au2);box-shadow:inset 0 0 0 1px rgba(227,207,164,.28)}
+  .b-cold{background:rgba(255,255,255,.05);color:var(--tx3);box-shadow:inset 0 0 0 1px var(--line)}
+  .why{font-size:.78rem;color:var(--tx2);margin:.4rem 0 .1rem;line-height:1.45}
+  .card.t-hot{border-color:rgba(255,110,70,.42)}
+  .tempSel{font-weight:700}
+
+  /* toolbar */
+  .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .search{flex:1;min-width:180px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:.15rem .3rem .15rem .95rem}
+  .search input{flex:1;background:transparent;border:none;outline:none;color:var(--tx);padding:.55rem 0}
+  .search svg{width:17px;height:17px;color:var(--tx3);flex:none}
+  .selwrap select{background:var(--surface);border:1px solid var(--line);color:var(--tx);border-radius:999px;padding:.55rem .9rem;outline:none;cursor:pointer}
+  .scanmsg{width:100%;font-size:.82rem;color:var(--tx2)}
+
+  /* cards */
+  .grid{display:flex;flex-direction:column;gap:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px}
+  .card.hot{border-color:rgba(201,169,110,.4)}
+  .card.due{box-shadow:inset 3px 0 0 var(--au2)}
+  .crow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .who{font-family:var(--sans);font-weight:600;font-size:1.02rem;color:var(--tx);margin-right:2px}
+  .pill{font-size:.66rem;font-weight:700;letter-spacing:.02em;padding:.22rem .5rem;border-radius:999px;text-transform:capitalize}
+  .p-reddit{background:#ff45001f;color:#ff8a5c}.p-bluesky{background:#3b82f61f;color:#7db4ff}
+  .p-website{background:#c9a96e22;color:var(--au2)}.p-manual{background:var(--surface2);color:var(--tx2)}
+  .chip{font-size:.72rem;color:var(--tx2);background:var(--surface2);border-radius:999px;padding:.18rem .5rem}
+  .score{margin-left:auto;font-family:var(--sans);font-weight:800;font-size:1.05rem}
+  .score.g{color:var(--s-won)}.score.y{color:var(--au2)}.score.n{color:var(--tx3)}
+  .due-tag{font-size:.68rem;font-weight:700;color:#1a1610;background:var(--au2);border-radius:999px;padding:.16rem .5rem}
+  .meta{font-size:.76rem;color:var(--tx3)}
+  .msg{color:var(--tx);font-size:.92rem;margin:.55rem 0;white-space:pre-wrap}
+  .acts{display:flex;gap:7px;flex-wrap:wrap;margin:.5rem 0}
+  .acts a,.acts button{font-size:.8rem;padding:.42rem .8rem;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+  .reply{margin-top:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .reply label,.notes label{font-family:var(--sans);font-size:.68rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--au);display:block;margin-bottom:5px}
+  textarea{width:100%;background:transparent;border:none;color:var(--tx);resize:vertical;outline:none;font-size:.9rem;line-height:1.5}
+  .notes{margin-top:10px;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .notes textarea{min-height:38px}
+  .foot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+  .foot label{font-size:.72rem;color:var(--tx2)}
+  .foot select,.foot input[type=date]{background:var(--surface);border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:.42rem .6rem;outline:none}
+  .stageSel{font-weight:700}
+  .del{margin-left:auto;background:none;border:none;color:var(--tx3);font-size:.8rem;padding:.4rem .3rem}
+  .del:hover{color:var(--s-lost)}
+  .saved{font-size:.72rem;color:var(--s-won);opacity:0;transition:.2s}
+  .saved.show{opacity:1}
+
+  .empty{text-align:center;color:var(--tx2);padding:52px 16px;border:1px dashed var(--line);border-radius:var(--r)}
+  .empty b{color:var(--tx);font-family:var(--sans)}
+
+  /* gate + modal */
+  .gate{max-width:360px;margin:60px auto;text-align:center}
+  .gate input{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--tx);padding:.85rem 1rem;border-radius:12px;font-size:16px;margin:14px 0;outline:none}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .overlay.show{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line2);border-radius:20px;padding:22px;max-width:400px;width:100%}
+  .modal h3{font-family:var(--sans);margin:0 0 14px}
+  .modal input,.modal select,.modal textarea{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:.7rem .9rem;margin-bottom:10px;outline:none;font-size:16px}
+  .modal .row{display:flex;gap:8px}.modal .row>*{flex:1}
+  @media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="gate" class="gate" style="display:none">
+    <div class="brand">Solstice <span class="r">CRM</span></div>
+    <p class="sub" style="margin-top:10px">Private. Sign in to continue.</p>
+    <input id="gateUser" type="text" placeholder="Username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')login()">
+    <input id="gatePass" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+    <div id="gateErr" style="color:var(--s-lost);font-size:.82rem;min-height:1.1em;margin:-4px 0 8px;text-align:left">&nbsp;</div>
+    <button class="btn-gold" id="gateBtn" style="width:100%" onclick="login()">Sign in</button>
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="top"><div class="brand">Solstice <span class="r">CRM</span></div>
+      <button class="btn-ghost" style="margin-left:auto;font-size:.8rem;padding:.4rem .85rem" onclick="logout()">Sign out</button></div>
+    <p class="sub">Every lead — social prospects &amp; website inquiries — in one pipeline. Reply, note, and follow up.</p>
+
+    <div class="stats" id="stats"></div>
+    <div class="pipe" id="pipe"></div>
+    <div class="temps" id="temps"></div>
+
+    <div class="bar">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="q" placeholder="Search name, handle, text, market…" oninput="onSearch()">
+      </div>
+      <div class="selwrap"><select id="source" onchange="load()">
+        <option value="all">All sources</option><option value="reddit">Reddit</option>
+        <option value="bluesky">Bluesky</option><option value="website">Website</option><option value="manual">Manual</option>
+      </select></div>
+      <button class="btn-gold" onclick="openAdd()">＋ Add lead</button>
+      <button class="btn-ghost" id="scanBtn" onclick="runScan()">⟳ Scan</button>
+      <span class="scanmsg" id="scanMsg"></span>
+    </div>
+
+    <div class="grid" id="list"></div>
+  </div>
+</div>
+
+<!-- Add lead modal -->
+<div class="overlay" id="addOverlay">
+  <div class="modal">
+    <h3>Add a lead</h3>
+    <input id="a_name" placeholder="Name">
+    <div class="row"><input id="a_phone" placeholder="Phone"><input id="a_email" placeholder="Email"></div>
+    <input id="a_loc" placeholder="Market / area (e.g. Malibu)">
+    <textarea id="a_notes" rows="3" placeholder="Notes…"></textarea>
+    <select id="a_stage">
+      <option value="new">New</option><option value="contacted">Contacted</option>
+      <option value="qualified">Qualified</option><option value="nurturing">Nurturing</option>
+      <option value="won">Won</option><option value="lost">Lost</option>
+    </select>
+    <div class="row" style="margin-top:4px">
+      <button class="btn-ghost" onclick="closeAdd()">Cancel</button>
+      <button class="btn-gold" onclick="submitAdd()">Add lead</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FN = "https://enktupvwcsojqthiimvu.supabase.co/functions/v1";
+const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVua3R1cHZ3Y3NvanF0aGlpbXZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTAyMTksImV4cCI6MjA5ODQyNjIxOX0.tf3oGT6_yPoqBwtBe6-WELQd1pYrfH7TO6Y0kuBr6BI";
+let TOKEN = localStorage.getItem("sir_leads_token") || "";
+let STAGE = "";
+let TEMP = "";
+const STAGES = [["","All"],["new","New"],["contacted","Contacted"],["qualified","Qualified"],["nurturing","Nurturing"],["won","Won"],["lost","Lost"]];
+const TEMPCHIPS = [["","All"],["hot","🔥 Hot"],["warm","🟡 Warm"],["cold","⚪ Cold"]];
+const TEMPLBL = {hot:"🔥 Hot", warm:"🟡 Warm", cold:"⚪ Cold"};
+const H = () => ({ "apikey": ANON, "Authorization": "Bearer " + ANON, "Content-Type": "application/json" });
+const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const today = () => new Date().toISOString().slice(0,10);
+const ago = t => { if(!t) return ""; const d=(Date.now()-new Date(t))/1000; if(d<3600) return Math.round(d/60)+"m"; if(d<86400) return Math.round(d/3600)+"h"; return Math.round(d/86400)+"d"; };
+
+function boot(){ TOKEN ? show() : (document.getElementById("gate").style.display="block"); }
+async function login(){
+  const u=document.getElementById("gateUser").value.trim();
+  const p=document.getElementById("gatePass").value;
+  const err=document.getElementById("gateErr"), btn=document.getElementById("gateBtn");
+  if(!u||!p){ err.textContent="Enter your username and password."; return; }
+  err.innerHTML="&nbsp;"; btn.disabled=true; btn.textContent="Signing in…";
+  try{
+    const r=await fetch(`${FN}/sir-leads`,{method:"POST",headers:H(),body:JSON.stringify({action:"login",username:u,password:p})});
+    const d=await r.json();
+    if(r.ok && d.token){ TOKEN=d.token; localStorage.setItem("sir_leads_token",d.token); show(); return; }
+    err.textContent=d.error||"Incorrect username or password.";
+  }catch(e){ err.textContent="Couldn't reach the server. Try again."; }
+  btn.disabled=false; btn.textContent="Sign in";
+}
+function logout(){ localStorage.removeItem("sir_leads_token"); location.reload(); }
+function show(){ document.getElementById("gate").style.display="none"; document.getElementById("app").style.display="block"; load(); }
+
+let searchT;
+function onSearch(){ clearTimeout(searchT); searchT=setTimeout(load, 280); }
+
+async function load(){
+  const list=document.getElementById("list");
+  const src=document.getElementById("source").value, q=document.getElementById("q").value.trim();
+  let d;
+  try{
+    const r=await fetch(`${FN}/sir-leads?token=${encodeURIComponent(TOKEN)}&stage=${STAGE}&source=${src}&temp=${TEMP}&q=${encodeURIComponent(q)}&limit=400`,{headers:H()});
+    if(r.status===401){ localStorage.removeItem("sir_leads_token"); location.reload(); return; }
+    d=await r.json();
+  }catch(e){ list.innerHTML='<div class="empty">Could not reach the server.</div>'; return; }
+  renderStats(d.stats||{}); renderPipe(d.stats||{}); renderTemps(d.stats||{});
+  const leads=d.leads||[];
+  if(!leads.length){
+    list.innerHTML=`<div class="empty"><b>No leads here yet.</b><br><br>Website inquiries land here automatically. Add one manually with <b>＋ Add lead</b>, or connect a social source to start prospecting.</div>`;
+    return;
+  }
+  list.innerHTML=leads.map(card).join("");
+}
+
+function renderStats(s){
+  const b=s.byStage||{};
+  const openWon=b.won||0;
+  document.getElementById("stats").innerHTML=`
+    <div class="stat"><div class="n">${s.total||0}</div><div class="l">Total leads</div></div>
+    <div class="stat hot"><div class="n">${s.hot||0}</div><div class="l">🔥 Hot &amp; open</div></div>
+    <div class="stat due"><div class="n">${s.followupsDue||0}</div><div class="l">⏰ Follow-ups due</div></div>
+    <div class="stat won"><div class="n">${openWon}</div><div class="l">✓ Won</div></div>`;
+}
+function renderPipe(s){
+  const b=s.byStage||{};
+  document.getElementById("pipe").innerHTML=STAGES.map(([k,l])=>{
+    const c = k==="" ? (s.total||0) : (b[k]||0);
+    return `<button class="stg ${STAGE===k?'on':''}" onclick="setStage('${k}')">${l}<span class="c">${c}</span></button>`;
+  }).join("");
+}
+function setStage(k){ STAGE=k; load(); }
+function renderTemps(s){
+  const t=s.byTemp||{};
+  const counts={"":s.total||0, hot:t.hot||0, warm:t.warm||0, cold:t.cold||0};
+  document.getElementById("temps").innerHTML=TEMPCHIPS.map(([k,l])=>
+    `<button class="tchip ${TEMP===k?'on':''} ${k==='hot'?'hot':''}" onclick="setTemp('${k}')">${l}<span class="c">${counts[k]}</span></button>`).join("");
+}
+function setTemp(k){ TEMP=k; load(); }
+
+function card(l){
+  const sc=l.score>=70?'g':l.score>=50?'y':'n';
+  const temp=TEMPLBL[l.temperature]?l.temperature:'warm';
+  const due=l.next_followup && l.next_followup<=today() && l.stage!=='won' && l.stage!=='lost';
+  const who=esc(l.name || (l.author?('@'+l.author):'') || 'Lead');
+  const stageOpts=STAGES.filter(x=>x[0]).map(([k,lab])=>`<option value="${k}" ${l.stage===k?'selected':''}>${lab}</option>`).join("");
+  const tempOpts=[["hot","🔥 Hot"],["warm","🟡 Warm"],["cold","⚪ Cold"]].map(([k,lab])=>`<option value="${k}" ${temp===k?'selected':''}>${lab}</option>`).join("");
+  const acts=[];
+  if(l.phone) acts.push(`<a class="btn-ghost" href="tel:${esc(l.phone)}">📞 Call</a>`);
+  if(l.email) acts.push(`<a class="btn-ghost" href="mailto:${esc(l.email)}">✉ Email</a>`);
+  if(l.url) acts.push(`<a class="btn-ghost" href="${esc(l.url)}" target="_blank" rel="noopener">↗ Post</a>`);
+  return `<div class="card t-${temp} ${due?'due':''}">
+    <div class="crow">
+      <span class="badge b-${temp}">${TEMPLBL[temp]}</span>
+      <span class="who">${who}</span>
+      <span class="pill p-${l.platform}">${esc(l.platform)}</span>
+      ${l.location?`<span class="chip">${esc(l.location)}</span>`:''}
+      ${l.intent&&l.intent!=='other'?`<span class="chip">${esc(l.intent)}</span>`:''}
+      ${due?'<span class="due-tag">follow up</span>':''}
+      <span class="score ${sc}">${l.score??''}</span>
+    </div>
+    ${l.temperature_reason?`<div class="why">${esc(l.temperature_reason)}</div>`:''}
+    <div class="crow" style="margin-top:2px">
+      ${l.title?`<span class="meta"><b style="color:var(--tx2)">${esc(l.title)}</b></span>`:''}
+      <span class="meta" style="margin-left:auto">${l.posted_at?ago(l.posted_at)+' ago':''}</span>
+    </div>
+    ${l.body?`<div class="msg">${esc(l.body.slice(0,340))}${l.body.length>340?'…':''}</div>`:''}
+    <div class="acts">${acts.join("")}${l.suggested_reply?`<button class="btn-ghost" onclick="copyReply('${l.id}')">⧉ Copy reply</button>`:''}</div>
+    ${l.suggested_reply?`<div class="reply"><label>Suggested reply — review &amp; send</label><textarea id="rep_${l.id}" rows="2">${esc(l.suggested_reply)}</textarea></div>`:''}
+    <div class="notes"><label>Notes</label><textarea id="note_${l.id}" rows="1" placeholder="Add a note…" onblur="saveNote('${l.id}',this.value)">${esc(l.notes||'')}</textarea></div>
+    <div class="foot">
+      <label>Stage</label>
+      <select class="stageSel" onchange="patch('${l.id}',{stage:this.value})">${stageOpts}</select>
+      <label>Heat</label>
+      <select class="tempSel" onchange="patch('${l.id}',{temperature:this.value})">${tempOpts}</select>
+      <label>Follow-up</label>
+      <input type="date" value="${l.next_followup||''}" onchange="patch('${l.id}',{next_followup:this.value})">
+      <span class="saved" id="sv_${l.id}">saved ✓</span>
+      <button class="del" onclick="del('${l.id}')" title="Delete">🗑</button>
+    </div>
+  </div>`;
+}
+
+function copyReply(id){ const t=document.getElementById("rep_"+id); t.select(); navigator.clipboard.writeText(t.value); flash(id); }
+function flash(id){ const s=document.getElementById("sv_"+id); if(s){ s.classList.add("show"); setTimeout(()=>s.classList.remove("show"),1200);} }
+
+async function patch(id, fields){
+  try{ await fetch(`${FN}/sir-leads`,{method:"POST",headers:H(),body:JSON.stringify({id,token:TOKEN,...fields})}); }catch(e){}
+  flash(id); load();
+}
+async function saveNote(id, val){
+  try{ await fetch(`${FN}/sir-leads`,{method:"POST",headers:H(),body:JSON.stringify({id,token:TOKEN,notes:val})}); flash(id); }catch(e){}
+}
+async function del(id){
+  if(!confirm("Delete this lead?")) return;
+  try{ await fetch(`${FN}/sir-leads`,{method:"POST",headers:H(),body:JSON.stringify({id,token:TOKEN,action:"delete"})}); }catch(e){}
+  load();
+}
+
+function openAdd(){ document.getElementById("addOverlay").classList.add("show"); }
+function closeAdd(){ document.getElementById("addOverlay").classList.remove("show"); }
+async function submitAdd(){
+  const p={ token:TOKEN, action:"create",
+    name:val("a_name"), phone:val("a_phone"), email:val("a_email"),
+    location:val("a_loc"), notes:val("a_notes"), stage:document.getElementById("a_stage").value };
+  if(!p.name && !p.phone && !p.email){ alert("Add at least a name, phone, or email."); return; }
+  try{ await fetch(`${FN}/sir-leads`,{method:"POST",headers:H(),body:JSON.stringify(p)}); }catch(e){}
+  ["a_name","a_phone","a_email","a_loc","a_notes"].forEach(i=>document.getElementById(i).value="");
+  closeAdd(); load();
+}
+const val=id=>document.getElementById(id).value.trim();
+
+async function runScan(){
+  const b=document.getElementById("scanBtn"), m=document.getElementById("scanMsg");
+  b.disabled=true; b.textContent="Scanning…"; m.textContent="Sweeping social sources…";
+  try{ const r=await fetch(`${FN}/sir-social-scan?token=${encodeURIComponent(TOKEN)}`,{method:"POST",headers:H()});
+       const d=await r.json();
+       const tmp=d.temperatures||{};
+       m.textContent=d.error?("Scan: "+d.error):`Scanned ${d.scanned_posts} posts · ${d.new_leads} new${d.new_leads?` (${tmp.hot||0} hot, ${tmp.warm||0} warm)`:''}.`;
+  }catch(e){ m.textContent="Scan failed to reach the server."; }
+  b.disabled=false; b.textContent="⟳ Scan"; load();
+}
+
+boot();
+</script>
+</body>
+</html>

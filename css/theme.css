@@ -475,3 +475,145 @@ header.nav.solid .masthead{padding-block:.55rem}
   .ai-row .btn{flex:1 1 100%; order:3; justify-content:center; margin-top:.35rem}
   .ai-search{max-width:none}
 }
+
+/* ============================================================
+   READABILITY + MOBILE PASS (v20)
+   Aurora removed → solid dark base; brighter/larger micro-text;
+   comfortable, zoom-safe mobile.
+   ============================================================ */
+
+/* solid dark everywhere (no more translucent aurora bleed behind text) */
+html, body { background: #07090a; }
+.band, .band-cream { background: linear-gradient(180deg,#0a0d0c,#080b0a); }
+#listings-sec::before, #about::before, #contact::before { display:none; }
+.val-source { color:#9aa39c; }
+
+/* brighter, calmer micro-labels (the gold/mono/tiny text was the hard-to-read culprit) */
+.eyebrow { color: var(--gold-soft); font-size:.72rem; letter-spacing:.16em; }
+.hero-topline { color:#dccaa0; font-size:.66rem; letter-spacing:.14em; }
+.hero-topline .tl-right { color:#9aa39c; }
+.hero-statrow span, .statbar-in span { color:#cbd1c8; font-size:.63rem; letter-spacing:.12em; }
+.card-city { color:#cdd3cc; }
+.result-meta, .result-meta .src-toggle span { color:#d7dcd5; }
+.badge { color: var(--gold-soft); }
+.about-stats .l, .md-facts .l { color:#b8c0b7; }
+.nb-links a { color:#e0e4de; }
+.m-sub { color: var(--gold-soft); }
+.ai-chips-tag { color: var(--gold); }
+.ai-chips button { color:#eef0ec; }
+footer { color:#bcc2bb; }
+.foot-grid a { color:#ccd2ca; }
+.sec-head p, .card-tag, .quote p, .contact-line { color:#dfe3dd; }
+
+/* ---------- MOBILE COMFORT ---------- */
+@media (max-width:640px){
+  .serif-xl { font-size:2.5rem; line-height:1.07; }
+  .hero-head { font-size:2.5rem; }
+  .sec-head h2 { font-size:2rem; }
+  .hero p.lede { font-size:1.02rem; line-height:1.55; }
+  .sec-head p { font-size:1rem; line-height:1.55; }
+  .card-tag { font-size:1rem; }
+  .eyebrow { letter-spacing:.12em; }
+  .hero-topline { letter-spacing:.1em; font-size:.62rem; }
+  .nb-links a { letter-spacing:.14em; }
+  .card-price { font-size:1.7rem; }
+  .val-num { font-size:2.6rem; }
+
+  /* touch targets + iOS: 16px inputs prevent focus-zoom */
+  .btn, .ai-row .btn { min-height:50px; align-items:center; }
+  .ai-row input, .controls select, .concierge input, .concierge textarea,
+  .concierge select, .val-input input, #aiInput { font-size:16px !important; }
+  .controls select { min-height:48px; }
+  .fav { width:42px; height:42px; }
+  .comm { min-height:180px; }
+}
+
+/* small phones */
+@media (max-width:390px){
+  .serif-xl, .hero-head { font-size:2.15rem; }
+  .m-word { font-size:1.1rem; letter-spacing:.14em; }
+}
+
+/* ============================================================
+   2026 POLISH — depth, grain, tactile motion (readability-safe)
+   ============================================================ */
+
+/* tonal depth instead of dead-flat black: subtle warm/green top glow, static */
+html{
+  background:
+    radial-gradient(120% 70% at 78% -8%, rgba(47,59,51,.42), transparent 52%),
+    radial-gradient(90% 55% at 12% 4%, rgba(201,169,110,.07), transparent 55%),
+    #07090a;
+  background-attachment:fixed;
+}
+body{background:transparent}
+.band,.band-cream{background:linear-gradient(180deg,rgba(9,12,11,.55),rgba(7,9,10,.2))}
+
+/* fine film grain over everything — the #1 "premium 2026" tell, ~4% */
+body::after{
+  content:""; position:fixed; inset:0; z-index:70; pointer-events:none; opacity:.05; mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size:160px 160px;
+}
+
+/* depth on floating surfaces */
+.card{box-shadow:0 1px 0 rgba(255,255,255,.03), 0 22px 45px -34px rgba(0,0,0,.9)}
+.controls,.val-card,.calc,.quote,.modal{box-shadow:0 24px 60px -40px rgba(0,0,0,.85)}
+
+/* tactile card hover: image push-in, lift, gold edge, caption rises */
+.card{transition:transform .5s cubic-bezier(.16,1,.3,1), box-shadow .5s, border-color .4s}
+.card:hover{transform:translateY(-6px); border-color:rgba(201,169,110,.55);
+  box-shadow:0 40px 80px -40px rgba(0,0,0,.95), 0 0 0 1px rgba(201,169,110,.25)}
+.card-img{overflow:hidden}
+.card-img img{transition:transform .85s cubic-bezier(.16,1,.3,1)}
+.card:hover .card-img img{transform:scale(1.07)}
+.card-price{transition:color .3s}
+.card:hover .card-price{color:#fff}
+
+/* community tiles: same tactile lift + zoom */
+.comm img{transition:transform .9s cubic-bezier(.16,1,.3,1)}
+.comm:hover img{transform:scale(1.08)}
+.comm:hover{transform:translateY(-4px)}
+
+/* animated link underline (editorial micro-interaction) */
+.nb-links a{position:relative}
+.nb-links a::after{content:""; position:absolute; left:0; right:100%; bottom:-4px; height:1px;
+  background:var(--gold); transition:right .35s cubic-bezier(.16,1,.3,1)}
+.nb-links a:hover::after{right:0}
+
+/* buttons: subtle depth + press feel */
+.btn{transition:transform .18s ease, box-shadow .25s, background .25s}
+.btn-gold:hover{transform:translateY(-2px); box-shadow:0 16px 34px -14px rgba(201,169,110,.6)}
+.btn-gold:active{transform:translateY(0)}
+
+/* headline: a touch more presence */
+.hero-head{letter-spacing:-.018em}
+.hero-head .gold{background:linear-gradient(100deg,#e3cfa4,#c9a96e 55%,#b0894f);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; color:transparent}
+
+/* smooth reveal easing baseline (in case GSAP is late) */
+[data-reveal],.reveal{transition:opacity .8s cubic-bezier(.16,1,.3,1), transform .8s cubic-bezier(.16,1,.3,1)}
+
+/* reduce grain on very small screens (perf/legibility) */
+@media (max-width:640px){ body::after{opacity:.04} }
+@media (prefers-reduced-motion:reduce){
+  .card,.card-img img,.comm img,.btn{transition:none !important}
+}
+
+/* ============================================================
+   MARKET INSIGHTS — live RentCast market data cards
+   ============================================================ */
+.market-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1rem}
+.market-card{background:#0d1211; border:1px solid var(--glass-brd); border-radius:12px; padding:1.4rem 1.5rem; cursor:pointer;
+  transition:transform .5s cubic-bezier(.16,1,.3,1), border-color .4s, box-shadow .5s; box-shadow:0 22px 45px -34px rgba(0,0,0,.9)}
+.market-card:hover{transform:translateY(-5px); border-color:rgba(201,169,110,.55); box-shadow:0 36px 70px -40px rgba(0,0,0,.95)}
+.mc-name{font-family:var(--mono); font-size:.66rem; letter-spacing:.2em; text-transform:uppercase; color:var(--gold); margin-bottom:.7rem}
+.mc-price{font-family:var(--serif); font-size:2.15rem; color:#fff; line-height:1; display:flex; align-items:baseline; gap:.55rem}
+.mc-price span{font-family:var(--mono); font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:#a3aaa1}
+.mc-stats{display:flex; gap:1.3rem; margin-top:1.25rem; padding-top:1.1rem; border-top:1px solid rgba(201,169,110,.16)}
+.mc-stats>div{display:flex; flex-direction:column; gap:.18rem}
+.mc-stats b{font-family:var(--serif); font-weight:500; font-size:1.1rem; color:#eef0ec}
+.mc-stats span{font-family:var(--mono); font-size:.55rem; letter-spacing:.1em; text-transform:uppercase; color:#a3aaa1}
+.market-loading{grid-column:1/-1; text-align:center; color:#9aa39c; font-family:var(--mono); font-size:.78rem; letter-spacing:.1em; padding:2.5rem}
+@media(max-width:920px){ .market-grid{grid-template-columns:repeat(2,1fr)} }
+@media(max-width:560px){ .market-grid{grid-template-columns:1fr} .mc-price{font-size:2rem} .mc-stats{gap:1.6rem} }

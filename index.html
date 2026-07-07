@@ -10,9 +10,12 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <link href="https://api.fontshare.com/v2/css?f[]=zodiak@400,401,500,700,701&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <link rel="stylesheet" href="css/styles.css">
-<link rel="stylesheet" href="css/theme.css?v=19">
+<link rel="stylesheet" href="css/theme.css?v=22">
+<link rel="stylesheet" href="css/overhaul.css?v=12">
+<link rel="stylesheet" href="css/addons.css?v=1">
 <script src="js/atmos-ui.js?v=2"></script>
 </head>
 <body>
@@ -66,7 +69,7 @@
     </div>
     <h1 class="serif-xl hero-head reveal in">Coastal California living,<br><span class="gold">curated for the few.</span></h1>
 
-    <p class="lede reveal in">Boutique representation from Donna Bohana — 20+ years, record-breaking sales, and an eye for the extraordinary. Tell us what you're dreaming of.</p>
+    <p class="lede reveal in">Boutique coastal representation from Donna Bohana — an eye for the rare.</p>
 
     <!-- SEARCH -->
     <div class="ai-search reveal in">
@@ -116,6 +119,15 @@
       <p>Donna's curated coastal portfolio — plus live MLS search you can flip on with one tap.</p>
     </div>
 
+    <a class="offmarket reveal" href="tel:+13108010265" aria-label="Call for off-market listings">
+      <div class="om-text">
+        <span class="om-tag">Off-Market Access</span>
+        <b>Looking for something you won't find online?</b>
+        <span class="om-sub">Ask Donna about our exclusive off-market &amp; pocket listings.</span>
+      </div>
+      <span class="om-call"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h4l2 5-2.5 1.5a11 11 0 0 0 5 5L14 14l5 2v4a1 1 0 0 1-1.1 1A16 16 0 0 1 3 6.1 1 1 0 0 1 4 5Z"/></svg>Call (310) 801-0265</span>
+    </a>
+
     <div class="controls reveal">
       <select id="fCommunity"><option value="">All Communities</option></select>
       <select id="fType"><option value="">Buy or Lease</option><option>For Sale</option><option>For Lease</option></select>
@@ -138,6 +150,20 @@
   </div>
 </section>
 
+<!-- MARKET INSIGHTS (live RentCast market data — positions Donna as the expert) -->
+<section class="sec" id="market">
+  <div class="wrap">
+    <div class="sec-head reveal">
+      <div class="eyebrow">The market, live</div>
+      <h2>Coastal California, by the numbers</h2>
+      <p>Real-time market intelligence across Donna's communities — median values, price per square foot, and pace of sale, refreshed from live market data.</p>
+    </div>
+    <div class="market-grid" id="marketGrid">
+      <div class="market-loading">Loading live market data…</div>
+    </div>
+  </div>
+</section>
+
 <!-- VALUATION -->
 <section class="sec band-cream" id="valuation">
   <div class="wrap">
@@ -157,6 +183,7 @@
         <div class="val-num" id="valNum">$0</div>
         <div class="val-bar"><b id="valBar"></b></div>
         <div class="val-range" id="valRange"></div>
+        <div class="val-source" id="valSource" style="font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;color:#8f978f;margin-top:.5rem"></div>
         <a class="btn btn-gold" href="#contact" style="margin-top:1.4rem">Get Donna's Expert Valuation</a>
       </div>
     </div>
@@ -256,7 +283,7 @@
     </div>
     <div style="border-top:1px solid var(--line);padding-top:1.4rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:1rem">
       <span>© 2026 Solstice International Realty. All rights reserved.</span>
-      <span>Equal Housing Opportunity · Listings shown are illustrative demo data.</span>
+      <span><a href="/privacy.html" style="color:var(--au-soft,#e3cfa4)">Privacy</a> · <a href="/terms.html" style="color:var(--au-soft,#e3cfa4)">Terms</a> · Equal Housing Opportunity</span>
     </div>
   </div>
 </footer>
@@ -281,14 +308,14 @@
 <!-- Leaflet loaded LAST among libs so nothing can clobber its global `L` -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <!-- app core -->
-<script src="js/data.js?v=2"></script>
+<script src="js/data.js?v=3"></script>
 <script src="js/idx.js?v=2"></script>
-<script src="js/api.js?v=1"></script>
-<script src="js/app.js?v=3"></script>
-<!-- immersive layer -->
-<script defer src="js/atmosphere.js?v=2"></script>
+<script src="js/api.js?v=4"></script>
+<script src="js/app.js?v=5"></script>
+<!-- immersive layer (aurora removed for readability + mobile perf) -->
 <script defer src="js/globe.js"></script>
 <script defer src="js/motion.js?v=3"></script>
+<script defer src="js/overhaul.js?v=5"></script>
 <script>
   // populate community grid + filter dropdown from data
   (function(){
@@ -300,6 +327,26 @@
       </div>`).join("");
     const sel = document.getElementById("fCommunity");
     COMMUNITIES.forEach(c => { const o = document.createElement("option"); o.value = c.key; o.textContent = c.key; sel.appendChild(o); });
+  })();
+
+  // Live market insights (RentCast, cached server-side)
+  (function(){
+    const grid = document.getElementById("marketGrid");
+    if (!grid || !window.SIR_API || !SIR_API.apiMarket) return;
+    const money = n => n == null ? "—" : n >= 1e6 ? "$" + (n / 1e6).toFixed(n % 1e6 ? 2 : 1).replace(/\.0$/, "") + "M" : "$" + Math.round(n).toLocaleString();
+    SIR_API.apiMarket().then(markets => {
+      if (!markets.length) { grid.innerHTML = ""; document.getElementById("market").style.display = "none"; return; }
+      grid.innerHTML = markets.map(m => `
+        <div class="market-card" onclick="filterByCommunity('${m.community}')">
+          <div class="mc-name">${m.community}</div>
+          <div class="mc-price">${money(m.medianPrice)}<span>median value</span></div>
+          <div class="mc-stats">
+            <div><b>$${m.pricePerSqft ? m.pricePerSqft.toLocaleString() : "—"}</b><span>per sq ft</span></div>
+            <div><b>${m.daysOnMarket ?? "—"}</b><span>days on market</span></div>
+            <div><b>${m.totalListings ?? "—"}</b><span>active listings</span></div>
+          </div>
+        </div>`).join("");
+    }).catch(() => { document.getElementById("market").style.display = "none"; });
   })();
 
   // Sleek typewriter placeholder — cycles real searches (no corny "AI" badge)

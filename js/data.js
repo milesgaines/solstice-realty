@@ -76,6 +76,16 @@ const near = (c, i) => [c[0] + (i % 5 - 2) * 0.006, c[1] + ((i * 7) % 5 - 2) * 0
 
 const LISTINGS = [
   {
+    id: "SIR-000", status: "For Sale", featured: true, pin: true, community: "Westlake Village",
+    address: "3485 Ridgeford Dr", city: "Westlake Village", zip: "91361",
+    price: 0, poa: true, beds: 5, baths: 6, sqft: 6400, lot: 0.6, year: 2018,
+    type: "Single Family", view: "Mountain & Valley", waterfront: false,
+    tagline: "Donna's exclusive Westlake Village estate — private showings by appointment",
+    hero: COMMUNITIES[2].img,
+    gallery: [COMMUNITIES[2].img, INT.living, INT.kitchen, INT.pool, INT.bedroom],
+    features: ["Gated privacy", "Resort pool & spa", "Chef's kitchen", "Panoramic views", "Offered by Donna Bohana"],
+  },
+  {
     id: "SIR-001", status: "For Sale", featured: true, community: "Malibu",
     address: "27400 Pacific Coast Hwy", city: "Malibu", zip: "90265",
     price: 18950000, beds: 5, baths: 6, sqft: 6200, lot: 0.9, year: 2021,

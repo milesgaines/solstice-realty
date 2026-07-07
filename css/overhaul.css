@@ -1,0 +1,459 @@
+/* ============================================================================
+   Solstice — "CLEAN APP" overhaul.  Loads LAST, wins the cascade.
+   Goal: premium product/app feel — spacious, rounded, uncluttered, app-like on
+   mobile (bottom tab bar), easy on desktop. One clean sans, one gold accent,
+   a single serif-italic flourish. No gallery hairlines/ghost-numbers/mono-clutter.
+   ============================================================================ */
+:root{
+  --bg:#0b0d0c;
+  --surface:rgba(255,255,255,.045);
+  --surface-2:rgba(255,255,255,.075);
+  --line:rgba(255,255,255,.09);
+  --line-2:rgba(255,255,255,.14);
+  --tx:#f3f5f1;
+  --tx-2:#aab0a7;
+  --tx-3:#7e847b;
+  --au:#c9a96e;           /* gold accent */
+  --au-soft:#e3cfa4;
+  --r:20px;               /* card radius */
+  --r-sm:13px;
+  --r-pill:999px;
+  --sh:0 24px 60px -34px rgba(0,0,0,.75);
+  --sh-lg:0 40px 90px -44px rgba(0,0,0,.9);
+  --ease:cubic-bezier(.16,1,.3,1);
+  --sans:"Sora",-apple-system,BlinkMacSystemFont,sans-serif;
+  --body:"Manrope",-apple-system,sans-serif;
+  --serif:"Zodiak",Georgia,serif;
+  --wrap:1180px;
+}
+
+/* kill leftover decorative layers + gallery clutter from earlier passes */
+#grain,.aurora,#aurora,#vignette{display:none!important}
+body::after,body::before{display:none!important}
+.sec::before,.sec::after,.sec-head::before,.sec-head::after,
+#listings-sec::before,#about::before,#contact::before{content:none!important;display:none!important}
+.scroll-cue{display:none!important}
+
+html{background:var(--bg)}
+body{background:var(--bg); color:var(--tx); font-family:var(--body);
+  -webkit-font-smoothing:antialiased; line-height:1.6; letter-spacing:0}
+.wrap{max-width:var(--wrap); margin:0 auto; padding:0 clamp(20px,5vw,44px)}
+.sec{padding:clamp(4.5rem,9vw,7.5rem) 0}
+.band{background:transparent}
+img{border-radius:inherit}
+a{color:inherit}
+::selection{background:var(--au); color:#1a1610}
+
+/* ---------- TYPE ---------- */
+h1,h2,h3,h4{font-family:var(--sans); font-weight:600; letter-spacing:-.02em; color:var(--tx); line-height:1.05}
+.serif-xl,.hero-head{font-family:var(--sans); font-weight:700; letter-spacing:-.03em}
+.sec-head{max-width:640px; margin-bottom:clamp(2rem,4vw,3rem)}
+.sec-head.center{margin-left:auto; margin-right:auto; text-align:center}
+.sec-head h2{font-size:clamp(2rem,4.4vw,3.3rem); margin:.5rem 0 .9rem}
+.sec-head p{color:var(--tx-2); font-size:1.05rem; max-width:52ch}
+.sec-head.center p{margin-left:auto; margin-right:auto}
+/* clean kicker — sans, not wide mono */
+.eyebrow{font-family:var(--sans); font-weight:600; font-size:.8rem; letter-spacing:.02em;
+  text-transform:none; color:var(--au); display:inline-flex; align-items:center; gap:.5rem}
+.eyebrow::before{content:""; width:18px; height:2px; border-radius:2px; background:var(--au)}
+.gold{color:var(--au)}
+
+/* ---------- BUTTONS ---------- */
+.btn{font-family:var(--sans); font-weight:600; border-radius:var(--r-pill); padding:.9rem 1.6rem;
+  font-size:.92rem; letter-spacing:0; display:inline-flex; align-items:center; gap:.5rem;
+  transition:transform .25s var(--ease), box-shadow .25s, background .25s, color .2s; cursor:pointer; border:none}
+.btn-gold{background:var(--au); color:#1a1610; box-shadow:0 12px 30px -14px rgba(201,169,110,.6)}
+.btn-gold:hover{transform:translateY(-2px); box-shadow:0 18px 40px -14px rgba(201,169,110,.7); background:var(--au-soft)}
+.btn-ghost{background:var(--surface); color:var(--tx); border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--surface-2); border-color:var(--line-2)}
+
+/* ============================================================
+   NAV — clean top bar
+   ============================================================ */
+header.nav{position:fixed; top:0; left:0; right:0; z-index:60; padding:0;
+  background:linear-gradient(180deg,rgba(11,13,12,.72),transparent); transition:background .35s, box-shadow .35s, backdrop-filter .35s}
+header.nav.solid{background:rgba(11,13,12,.82); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px);
+  box-shadow:0 1px 0 var(--line)}
+.masthead{display:flex; align-items:center; gap:1.5rem; padding-block:1.1rem; border:none!important}
+.m-brand{display:flex; align-items:baseline; gap:.5rem; flex:none}
+.m-word{font-family:var(--sans); font-weight:700; font-size:1.25rem; letter-spacing:.02em; color:var(--tx)}
+.m-div{display:none}
+.m-sub{font-family:var(--body); font-size:.66rem; font-weight:500; letter-spacing:.14em; text-transform:uppercase; color:var(--au); white-space:nowrap}
+.nb-links{display:flex; gap:.4rem; margin:0 auto}
+.nb-links a{font-family:var(--sans); font-weight:500; font-size:.9rem; letter-spacing:0; text-transform:none;
+  color:var(--tx-2); padding:.5rem .85rem; border-radius:var(--r-pill); transition:color .2s, background .2s}
+.nb-links a::after{display:none!important}
+.nb-links a:hover{color:var(--tx); background:var(--surface)}
+.m-right{display:flex; align-items:center; gap:.7rem; flex:none; margin-left:auto}
+.m-link{font-family:var(--sans); font-weight:500; font-size:.86rem; letter-spacing:0; color:var(--tx-2); display:flex; align-items:center; gap:.35rem}
+.m-link:hover{color:var(--tx)}
+.m-tel{color:var(--tx-2)}
+.nb-cta{font-family:var(--sans); font-weight:600; font-size:.86rem; letter-spacing:0; text-transform:none;
+  color:#1a1610; background:var(--au); padding:.62rem 1.15rem; border-radius:var(--r-pill); transition:transform .2s var(--ease), background .2s}
+.nb-cta span{display:none}
+.nb-cta:hover{transform:translateY(-1px); background:var(--au-soft)}
+
+/* ============================================================
+   HERO — clean, big imagery, simple search
+   ============================================================ */
+.hero{position:relative; min-height:100svh; display:flex; align-items:flex-end; overflow:hidden}
+.hero-bg{position:absolute; inset:0; z-index:0; border-radius:0}
+.hero-slide{position:absolute; inset:0; opacity:0; transition:opacity 1.6s ease}
+.hero-slide.on{opacity:1}
+.hero-slide img{width:100%; height:100%; object-fit:cover; border-radius:0}
+.hero-bg::after{content:""; position:absolute; inset:0;
+  background:
+    linear-gradient(90deg,rgba(11,13,12,.72) 0%,rgba(11,13,12,.34) 42%,transparent 72%),
+    linear-gradient(180deg,rgba(11,13,12,.5) 0%,rgba(11,13,12,.1) 30%,rgba(11,13,12,.45) 60%,rgba(11,13,12,.96) 100%)}
+.hero-inner{position:relative; z-index:2; width:100%; padding-bottom:clamp(2.4rem,5vh,4rem); padding-top:120px}
+.hero-topline{display:flex; gap:.7rem; align-items:center; font-family:var(--sans); font-weight:500;
+  font-size:.82rem; letter-spacing:0; text-transform:none; color:var(--au-soft); margin-bottom:1.1rem; border:none!important; padding:0!important}
+.hero-topline .tl-right{display:none}
+.hero-head{max-width:15ch; font-size:clamp(2.7rem,7vw,5.4rem); line-height:1.0; margin:0 0 1.3rem; color:#fff;
+  text-shadow:0 2px 40px rgba(0,0,0,.5)}
+.hero-head .gold{font-family:var(--serif); font-style:italic; font-weight:500; color:var(--au)}
+.hero .lede{color:#f2f4ef; font-size:clamp(1rem,1.4vw,1.15rem); max-width:46ch; margin:0 0 1.8rem;
+  text-shadow:0 1px 22px rgba(0,0,0,.75)}
+
+/* search → clean rounded pill card */
+.ai-search{background:rgba(20,24,22,.68); -webkit-backdrop-filter:blur(24px); backdrop-filter:blur(24px);
+  border:1px solid var(--line-2); border-radius:22px; padding:.55rem; max-width:640px; box-shadow:var(--sh)}
+.ai-search::before{display:none!important}
+.ai-row{display:flex; align-items:center; gap:.7rem; padding:0 .35rem 0 .9rem; border:none!important}
+.ai-ic{color:var(--au); display:grid; place-items:center; width:22px; height:22px; flex:none}
+.ai-ic svg{width:21px; height:21px}
+.ai-row input{flex:1; background:transparent; border:none; outline:none; color:var(--tx); font-family:var(--body);
+  font-size:1.02rem; padding:.9rem 0}
+.ai-row input::placeholder{color:var(--tx-3)}
+.ai-row .btn{border-radius:16px; padding:.85rem 1.5rem}
+.ai-chips{display:flex; flex-wrap:wrap; gap:.5rem; align-items:center; padding:.85rem .5rem .35rem}
+.ai-chips-tag{font-family:var(--sans); font-weight:600; font-size:.78rem; color:var(--tx-3); text-transform:none; letter-spacing:0; margin-right:.1rem}
+.ai-chips button{font-family:var(--body); font-weight:500; font-size:.82rem; letter-spacing:0; color:var(--tx);
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r-pill); padding:.42rem .85rem; transition:.2s}
+.ai-chips button:hover{background:var(--au); color:#1a1610; border-color:var(--au); transform:none}
+.ai-alt{padding:.7rem .5rem 0; font-size:.86rem; color:var(--tx-2); font-family:var(--body)}
+.ai-alt a{color:var(--au); text-decoration:none; font-weight:600; border-bottom:1px solid rgba(201,169,110,.4)}
+
+/* hero stats → clean chips row */
+.hero-statrow{display:flex; flex-wrap:wrap; gap:.6rem 2.2rem; margin-top:1.8rem}
+.hero-statrow>div{display:flex; flex-direction:column; gap:.1rem; padding:0; border:none!important}
+.hero-statrow b{font-family:var(--sans); font-weight:700; font-size:1.35rem; color:#fff}
+.hero-statrow span{font-family:var(--body); font-size:.78rem; letter-spacing:0; text-transform:none; color:var(--au-soft)}
+
+/* ============================================================
+   COMMUNITIES — clean rounded tiles
+   ============================================================ */
+.comm-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:1rem}
+.comm{position:relative; aspect-ratio:3/4; border-radius:var(--r); overflow:hidden; cursor:pointer;
+  transition:transform .5s var(--ease); box-shadow:var(--sh)}
+.comm:hover{transform:translateY(-5px)}
+.comm img{width:100%; height:100%; object-fit:cover; transition:transform .8s var(--ease); filter:none}
+.comm:hover img{transform:scale(1.07)}
+.comm::after{content:""; position:absolute; inset:0; background:linear-gradient(180deg,transparent 45%,rgba(11,13,12,.85))}
+.comm .lab{position:absolute; left:18px; bottom:16px; z-index:2}
+.comm .lab .n{font-family:var(--sans); font-weight:600; font-size:1.25rem; color:#fff}
+.comm .lab .b{font-family:var(--body); font-size:.78rem; letter-spacing:0; text-transform:none; color:var(--au-soft)}
+
+/* ============================================================
+   LISTINGS — clean controls + rounded app cards
+   ============================================================ */
+.controls{display:flex; flex-wrap:wrap; gap:.6rem; align-items:center; margin-bottom:2rem; padding:0; background:none; border:none; box-shadow:none}
+.controls select{font-family:var(--body); font-size:.9rem; color:var(--tx); background:var(--surface);
+  border:1px solid var(--line); border-radius:var(--r-pill); padding:.7rem 1.05rem; outline:none; cursor:pointer; transition:.2s}
+.controls select:hover{border-color:var(--line-2); background:var(--surface-2)}
+.result-meta{margin-left:auto; display:flex; align-items:center; gap:1rem; font-family:var(--body); font-size:.86rem; color:var(--tx-2)}
+.src-toggle{display:flex; align-items:center; gap:.5rem}
+.switch{width:44px; height:25px; border-radius:var(--r-pill); background:var(--surface-2); border:1px solid var(--line); position:relative; cursor:pointer; transition:.25s}
+.switch.on{background:var(--au); border-color:var(--au)}
+.switch b{position:absolute; top:2px; left:2px; width:19px; height:19px; border-radius:50%; background:#fff; transition:.25s}
+.switch.on b{left:21px}
+.seg{display:flex; background:var(--surface); border:1px solid var(--line); border-radius:var(--r-pill); overflow:hidden; padding:2px}
+.seg button{font-family:var(--body); font-size:.84rem; padding:.42rem .95rem; color:var(--tx-2); border-radius:var(--r-pill); transition:.2s; border:none; background:none; cursor:pointer}
+.seg button.on{background:var(--au); color:#1a1610; font-weight:600}
+#count{color:var(--au); font-weight:700}
+
+.listings{display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); overflow:hidden;
+  cursor:pointer; box-shadow:var(--sh); transition:transform .5s var(--ease), box-shadow .5s, border-color .3s; display:flex; flex-direction:column}
+.card:hover{transform:translateY(-7px); box-shadow:var(--sh-lg); border-color:var(--line-2)}
+.card-img{position:relative; aspect-ratio:4/3; overflow:hidden}
+.card-img img{width:100%; height:100%; object-fit:cover; filter:none; transition:transform .8s var(--ease)}
+.card:hover .card-img img{transform:scale(1.06)}
+.card-badges{position:absolute; top:12px; left:12px; display:flex; gap:.4rem; z-index:2}
+.badge{font-family:var(--body); font-weight:600; font-size:.68rem; letter-spacing:0; text-transform:none;
+  padding:.34rem .65rem; border-radius:var(--r-pill); background:rgba(11,13,12,.72); color:#fff; -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px)}
+.badge.sale{background:var(--au); color:#1a1610}
+.badge.lease{background:rgba(11,13,12,.72); color:var(--au-soft)}
+.fav{position:absolute; top:11px; right:11px; z-index:3; width:40px; height:40px; border-radius:50%;
+  background:rgba(11,13,12,.55); -webkit-backdrop-filter:blur(8px); backdrop-filter:blur(8px); display:grid; place-items:center;
+  font-size:1.1rem; color:#fff; border:none; cursor:pointer; transition:.2s}
+.fav:hover{background:rgba(11,13,12,.85); transform:scale(1.08)}
+.fav.on{color:#ff5c7a}
+.card-body{padding:1.2rem 1.3rem 1.4rem; flex:1; display:flex; flex-direction:column}
+.card-price{font-family:var(--sans); font-weight:700; font-size:1.6rem; color:#fff; letter-spacing:-.01em}
+.card-price small{font-family:var(--body); font-weight:500; font-size:.8rem; color:var(--tx-2)}
+.card-addr{font-family:var(--body); font-weight:600; font-size:.96rem; color:var(--tx); margin:.4rem 0 .15rem}
+.card-city{font-family:var(--body); font-size:.84rem; letter-spacing:0; text-transform:none; color:var(--tx-2)}
+.card-tag{font-family:var(--body); font-size:.9rem; color:var(--tx-2); margin:.75rem 0 1rem; flex:1; line-height:1.5}
+.card-facts{display:flex; gap:1.2rem; font-family:var(--body); font-size:.86rem; color:var(--tx); padding-top:1rem; border-top:1px solid var(--line)}
+.card-facts b{color:var(--au); font-weight:700}
+.card-cmp{margin-top:.85rem; display:flex; align-items:center; gap:.45rem; font-family:var(--body); font-size:.78rem; color:var(--tx-2); cursor:pointer}
+.card-cmp input{accent-color:var(--au)}
+
+/* map */
+#map{height:520px; border-radius:var(--r); overflow:hidden; border:1px solid var(--line)}
+.map-pin{font-family:var(--sans); font-weight:700}
+
+/* ============================================================
+   MARKET — clean rounded stat cards
+   ============================================================ */
+.market-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:1.1rem}
+.market-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:1.5rem 1.6rem;
+  cursor:pointer; box-shadow:var(--sh); transition:transform .5s var(--ease), border-color .3s, box-shadow .5s}
+.market-card:hover{transform:translateY(-5px); border-color:var(--line-2); box-shadow:var(--sh-lg)}
+.mc-name{font-family:var(--sans); font-weight:600; font-size:.9rem; letter-spacing:0; text-transform:none; color:var(--au); margin-bottom:.8rem}
+.mc-price{font-family:var(--sans); font-weight:700; font-size:2rem; color:#fff; line-height:1; display:flex; align-items:baseline; gap:.5rem}
+.mc-price span{font-family:var(--body); font-weight:500; font-size:.72rem; letter-spacing:0; text-transform:none; color:var(--tx-2)}
+.mc-stats{display:flex; gap:1.4rem; margin-top:1.3rem; padding-top:1.1rem; border-top:1px solid var(--line)}
+.mc-stats>div{display:flex; flex-direction:column; gap:.15rem}
+.mc-stats b{font-family:var(--sans); font-weight:600; font-size:1.05rem; color:var(--tx)}
+.mc-stats span{font-family:var(--body); font-size:.68rem; letter-spacing:0; text-transform:none; color:var(--tx-2)}
+.market-loading{grid-column:1/-1; text-align:center; color:var(--tx-2); font-family:var(--body); padding:2.5rem}
+
+/* ============================================================
+   VALUATION — clean card (stays dark, no cream flip)
+   ============================================================ */
+.band-cream{background:transparent!important; color:var(--tx)!important}
+.band-cream h2,.band-cream h3{color:var(--tx)!important}
+.band-cream p{color:var(--tx-2)!important}
+.val-card{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:clamp(1.6rem,4vw,2.8rem);
+  max-width:720px; margin:0 auto; box-shadow:var(--sh)}
+.val-card label{font-family:var(--sans); font-weight:600; font-size:.8rem; letter-spacing:0; text-transform:none; color:var(--au)!important}
+.val-input{display:flex; gap:.6rem; margin-top:1rem; flex-wrap:wrap}
+.val-input input{flex:1; min-width:220px; background:var(--bg); border:1px solid var(--line); color:var(--tx);
+  padding:1rem 1.1rem; border-radius:14px; font-size:1rem; font-family:var(--body); outline:none}
+.val-input input:focus{border-color:var(--au)}
+.val-input .btn{border-radius:14px}
+.val-num{font-family:var(--sans); font-weight:700; font-size:clamp(2.6rem,7vw,4rem); color:var(--au); letter-spacing:-.02em}
+.val-range{font-family:var(--body); color:var(--tx-2)}
+.val-source{font-family:var(--body)!important; color:var(--tx-3)!important; letter-spacing:0!important}
+.val-bar{height:8px; border-radius:var(--r-pill); background:var(--bg); border:1px solid var(--line); overflow:hidden; max-width:440px; margin:1.1rem auto}
+.val-bar b{display:block; height:100%; background:linear-gradient(90deg,var(--au-soft),var(--au))}
+
+/* ============================================================
+   ABOUT / REVIEWS / CONTACT — clean, spacious, rounded
+   ============================================================ */
+.about{display:grid; grid-template-columns:1fr 1.15fr; gap:clamp(2rem,5vw,4.5rem); align-items:center}
+.about-img{border-radius:var(--r); overflow:hidden; aspect-ratio:4/5; box-shadow:var(--sh-lg)}
+.about-img img{width:100%; height:100%; object-fit:cover}
+.about-stats{display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; margin:2rem 0}
+.about-stats .n{font-family:var(--sans); font-weight:700; font-size:2.1rem; color:var(--au)}
+.about-stats .l{font-family:var(--body); font-size:.8rem; letter-spacing:0; text-transform:none; color:var(--tx-2)}
+.press{display:flex; gap:1.6rem; flex-wrap:wrap; align-items:center; opacity:.75}
+.press span{font-family:var(--sans); font-weight:600; font-size:1.05rem}
+
+.quotes{display:grid; grid-template-columns:repeat(3,1fr); gap:1.3rem}
+.quote{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:1.9rem; box-shadow:var(--sh)}
+.quote .stars{color:var(--au); letter-spacing:.15em; margin-bottom:.8rem}
+.quote p{font-family:var(--body); font-size:1rem; color:var(--tx); font-style:normal; line-height:1.6; margin-bottom:1rem}
+.quote .by{font-family:var(--sans); font-weight:500; font-size:.86rem; letter-spacing:0; text-transform:none; color:var(--au-soft)}
+
+.concierge{display:grid; grid-template-columns:1.05fr 1fr; gap:clamp(2rem,5vw,4rem)}
+.contact-line{display:flex; gap:.85rem; align-items:center; margin:.9rem 0; font-family:var(--body); font-size:1rem; color:var(--tx)}
+.contact-line .ic{width:44px; height:44px; border-radius:14px; background:var(--surface); border:1px solid var(--line); display:grid; place-items:center; color:var(--au); flex:none}
+.concierge input,.concierge textarea,.concierge select{width:100%; background:var(--surface); border:1px solid var(--line);
+  color:var(--tx); padding:.95rem 1.1rem; border-radius:14px; margin-top:.7rem; font-family:var(--body); font-size:1rem; outline:none}
+.concierge input:focus,.concierge textarea:focus,.concierge select:focus{border-color:var(--au)}
+.concierge textarea{min-height:120px; resize:vertical}
+.form-row{display:flex; gap:.7rem; flex-wrap:wrap}
+.form-row>*{flex:1; min-width:160px}
+
+footer{background:transparent; border-top:1px solid var(--line); padding:3rem 0 2rem; color:var(--tx-2); font-family:var(--body); font-size:.9rem}
+.foot-grid a{color:var(--tx-2)}
+.foot-grid a:hover{color:var(--au)}
+
+/* compare tray / modal / toast — rounded, clean */
+.cmp-tray{border-radius:var(--r) var(--r) 0 0; background:rgba(20,24,22,.92); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px); border:1px solid var(--line)}
+.overlay .modal{border-radius:var(--r); background:#101413; border:1px solid var(--line)}
+.toast{border-radius:14px; background:#15100f; border:1px solid var(--au); font-family:var(--body)}
+
+/* ============================================================
+   MOBILE — app-like: bottom tab bar, big touch targets, simple top bar
+   ============================================================ */
+.sir-tabbar{display:none}
+@media(max-width:820px){
+  .nb-links{display:none}
+  .nb-cta{display:none}
+  .m-tel{display:none}
+  .masthead{padding-block:.85rem}
+}
+@media(max-width:640px){
+  .sec{padding:3.2rem 0}
+  .hero-inner{padding-top:96px; padding-bottom:calc(2rem + 76px)} /* room above tab bar */
+  .hero-head{font-size:2.6rem}
+  .hero .lede{font-size:1rem}
+  .hero-statrow{gap:.9rem 1.6rem; margin-top:1.4rem}
+  .hero-statrow b{font-size:1.2rem}
+
+  /* single clean top bar */
+  .m-word{font-size:1.15rem}
+
+  /* search: stacked, full-width button, swipe chips */
+  .ai-row{flex-wrap:wrap; padding:.2rem .35rem .2rem .8rem}
+  .ai-row input{flex:1; min-width:0; font-size:16px}
+  .ai-row .btn{flex:1 1 100%; order:3; justify-content:center; margin-top:.35rem}
+  .ai-chips{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; padding-bottom:.4rem}
+  .ai-chips::-webkit-scrollbar{display:none}
+  .ai-chips button,.ai-chips-tag{flex:none}
+
+  .comm-grid{grid-template-columns:1fr 1fr; gap:.8rem}
+  .listings{grid-template-columns:1fr; gap:1.2rem}
+  .market-grid{grid-template-columns:1fr}
+  .about{grid-template-columns:1fr; gap:1.6rem}
+  .concierge{grid-template-columns:1fr; gap:1.8rem}
+  .quotes{grid-template-columns:1fr}
+  .about-stats{gap:.8rem}
+  .about-stats .n{font-size:1.7rem}
+
+  .controls{gap:.5rem}
+  .controls select{flex:1 1 46%; font-size:16px; padding:.8rem 1rem}
+  .result-meta{margin-left:0; width:100%; justify-content:space-between; flex-wrap:wrap; gap:.6rem}
+  .val-input input{font-size:16px}
+  .val-input .btn{width:100%; justify-content:center}
+  .concierge input,.concierge textarea,.concierge select{font-size:16px}
+
+  footer{padding-bottom:calc(2rem + 76px)}
+  /* keep empty tray fully off-screen (base translateY hides from bottom:0);
+     only lift it above the tab bar once it actually shows */
+  .cmp-tray{bottom:0}
+  .cmp-tray.show{bottom:calc(70px + env(safe-area-inset-bottom))}
+  /* toast: sit above the tab bar when shown, fully off-screen when hidden */
+  .toast{left:12px; right:12px; bottom:0; transform:translateY(340%)}
+  .toast.show{bottom:calc(84px + env(safe-area-inset-bottom)); transform:none}
+
+  /* the app bottom tab bar */
+  .sir-tabbar{display:flex; position:fixed; left:0; right:0; bottom:0; z-index:90;
+    background:rgba(13,16,15,.9); -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px);
+    border-top:1px solid var(--line); padding:.5rem .5rem calc(.5rem + env(safe-area-inset-bottom))}
+  .sir-tabbar a{position:relative; flex:1; display:flex; flex-direction:column; align-items:center; gap:.2rem; padding:.4rem 0;
+    color:var(--tx-2); text-decoration:none; font-family:var(--body); font-size:.66rem; font-weight:600; transition:color .2s}
+  .sir-tabbar a.active,.sir-tabbar a:active{color:var(--au)}
+  .sir-tabbar svg{width:23px; height:23px}
+  .sir-tabbar .tb-badge{position:absolute; top:2px; left:50%; margin-left:4px; background:var(--au); color:#1a1610;
+    font-size:.58rem; font-weight:700; min-width:15px; height:15px; border-radius:999px; display:grid; place-items:center; padding:0 3px}
+  /* hide the burger; tab bar replaces it */
+  .burger{display:none!important}
+}
+@media(max-width:400px){
+  .hero-head{font-size:2.25rem}
+  .comm-grid{grid-template-columns:1fr}
+}
+
+/* reveals: gentle, always end visible */
+.reveal,[data-reveal]{transition:opacity .7s var(--ease), transform .7s var(--ease)}
+@media(prefers-reduced-motion:reduce){ *{transition:none!important; animation:none!important} }
+
+/* ============================================================
+   HERO — CLEAN PHOTO-FORWARD (replaces the frosted-plate box)
+   The photo is the hero. Minimal copy anchored to a naturally
+   darkening bottom (readable there without a heavy box). Stat row
+   removed (was clutter + got cut off by the tab bar). Content is
+   normal-flow + bottom-anchored + height-capped so it NEVER clips,
+   even on a short iPhone-with-toolbar (~660px) viewport.
+   Same DOM hooks; [data-count] untouched (row just hidden).
+   ============================================================ */
+.hero{min-height:100svh; display:flex; align-items:flex-end; overflow:hidden}
+
+/* let the image breathe up top; darken strongly toward the bottom where
+   the copy lives so text is readable over ANY slide without a box */
+.hero-bg::after{
+  background:linear-gradient(180deg,
+    rgba(11,13,12,.28) 0%,
+    rgba(11,13,12,.06) 14%,
+    rgba(11,13,12,.50) 32%,
+    rgba(11,13,12,.72) 44%,
+    rgba(11,13,12,.88) 62%,
+    rgba(11,13,12,.95) 80%,
+    rgba(11,13,12,.99) 100%) !important;
+}
+
+/* kill the previous frosted-plate pseudo-elements */
+.hero-inner::before,.hero-inner::after{content:none!important; display:none!important;
+  background:none!important; border:none!important; box-shadow:none!important; -webkit-backdrop-filter:none!important; backdrop-filter:none!important}
+
+.hero-inner{position:relative; z-index:2; width:100%; max-width:680px;
+  padding-top:100px; padding-bottom:clamp(2.2rem,5vh,3.6rem)}
+
+/* eyebrow — one quiet uppercase line */
+.hero-topline{display:block; font-family:var(--sans); font-weight:600;
+  font-size:.72rem; letter-spacing:.05em; text-transform:uppercase; color:var(--au-soft);
+  margin:0 0 1rem; padding:0!important; border:none!important; text-shadow:0 1px 14px rgba(0,0,0,.85)}
+.hero-topline .tl-right{display:none!important}
+
+/* headline — confident; strong dark halo so it reads over ANY photo */
+.hero-head{max-width:15ch; font-family:var(--sans); font-weight:700;
+  font-size:clamp(2.4rem,6vw,4rem); line-height:1.03; letter-spacing:-.03em;
+  margin:0 0 1rem; color:#fff;
+  text-shadow:0 0 2px rgba(0,0,0,.5), 0 1px 3px rgba(0,0,0,.7), 0 2px 26px rgba(0,0,0,.55)}
+/* accent: bright warm-white, same clean shadow as the headline.
+   IMPORTANT: theme.css clips a GOLD gradient into this text via
+   background-clip:text + -webkit-text-fill-color:transparent — that gold-on-
+   bright-photo was the real "unreadable" bug. Force a solid warm-white fill. */
+.hero-head .gold{font-family:var(--serif); font-style:italic; font-weight:500;
+  background:none!important; -webkit-background-clip:border-box!important; background-clip:border-box!important;
+  color:#fbf8f2!important; -webkit-text-fill-color:#fbf8f2!important;
+  text-shadow:0 0 2px rgba(0,0,0,.5), 0 1px 3px rgba(0,0,0,.75), 0 2px 22px rgba(0,0,0,.6)}
+
+/* lede — one short line */
+.hero .lede{color:#eef0ea; font-family:var(--body);
+  font-size:clamp(1rem,1.25vw,1.1rem); line-height:1.5; max-width:42ch;
+  margin:0 0 1.5rem; text-shadow:0 1px 20px rgba(0,0,0,.85)}
+
+/* SEARCH — its own contained rounded card (contrast without a big box) */
+.ai-search{background:rgba(15,19,17,.72); -webkit-backdrop-filter:blur(20px); backdrop-filter:blur(20px);
+  border:1px solid var(--line-2); border-radius:20px; padding:.5rem; max-width:600px; box-shadow:var(--sh)}
+.ai-search::before{display:none!important}
+.ai-row{display:flex; align-items:center; gap:.6rem; padding:0 .3rem 0 .9rem; border:none!important; background:none}
+.ai-row .ai-ic{color:var(--au); display:grid; place-items:center; width:22px; height:22px; flex:none}
+.ai-row input{flex:1; background:transparent; border:none; outline:none; color:var(--tx); font-family:var(--body); font-size:1rem; padding:.85rem 0}
+.ai-row input::placeholder{color:var(--tx-3)}
+.ai-row .btn{border-radius:14px; padding:.8rem 1.4rem}
+.ai-chips{display:flex; flex-wrap:wrap; gap:.45rem; align-items:center; padding:.7rem .3rem .2rem}
+.ai-chips-tag{font-family:var(--sans); font-weight:600; font-size:.74rem; color:var(--tx-3); margin-right:.15rem; text-transform:none; letter-spacing:0}
+.ai-chips button{font-family:var(--body); font-weight:500; font-size:.8rem; color:var(--tx);
+  background:rgba(255,255,255,.06); border:1px solid var(--line); border-radius:var(--r-pill); padding:.38rem .8rem; transition:.2s}
+.ai-chips button:hover{background:var(--au); color:#1a1610; border-color:var(--au)}
+.ai-alt{padding:.6rem .3rem 0; font-size:.82rem; color:var(--tx-2); font-family:var(--body)}
+.ai-alt a{color:var(--au-soft); font-weight:600; text-decoration:none; border-bottom:1px solid rgba(227,207,164,.35)}
+
+/* stat row removed from the hero — clutter + it was clipping under the tab bar */
+.hero-statrow{display:none!important}
+
+/* ---- MOBILE: minimal, fits above the 76px tab bar ---- */
+@media(max-width:640px){
+  .hero{align-items:flex-end}
+  .hero-inner{max-width:none; padding-top:84px; padding-bottom:calc(1.3rem + 76px)}
+  .hero-topline{font-size:.66rem; margin-bottom:.7rem}
+  .hero-head{font-size:clamp(2rem,8.5vw,2.5rem); margin-bottom:.8rem; max-width:none}
+  .hero .lede{font-size:.98rem; margin-bottom:1.05rem; max-width:none}
+  .ai-search{max-width:none}
+  .ai-row{flex-wrap:wrap; padding:.15rem .3rem .15rem .8rem}
+  .ai-row input{flex:1; min-width:0; font-size:16px}
+  .ai-row .btn{flex:1 1 100%; order:3; justify-content:center; margin-top:.35rem}
+  .ai-chips{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; padding:.6rem 0 .1rem}
+  .ai-chips::-webkit-scrollbar{display:none}
+  .ai-chips-tag{display:none}
+  .ai-chips button{flex:none}
+  .ai-chips button:nth-of-type(n+4){display:none}   /* 3 chips */
+  .ai-alt{display:none}
+}
+@media(max-width:400px){ .hero-head{font-size:1.85rem} .ai-chips button:nth-of-type(n+3){display:none} }
+
+/* ---- SHORT SCREENS (iPhone w/ Safari toolbar ~660px): shrink to fit ---- */
+@media(max-height:700px){
+  .hero-inner{padding-top:72px}
+  .hero-head{font-size:clamp(1.75rem,7vw,2.2rem); margin-bottom:.7rem}
+  .hero .lede{display:none}                          /* headline + search is enough */
+  .hero-topline{margin-bottom:.6rem}
+  .ai-chips{padding-top:.55rem}
+}

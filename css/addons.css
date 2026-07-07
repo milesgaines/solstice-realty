@@ -1,0 +1,32 @@
+/* ============================================================================
+   Solstice — add-ons layered AFTER overhaul.css (wins cascade).
+   - Off-Market CTA strip (Donna's request)
+   - Pinned spotlight card emphasis (Donna's 3485 Ridgeford listing)
+   Kept separate so it's stable regardless of hero-overhaul iterations.
+   ============================================================================ */
+
+/* ---------- OFF-MARKET CTA (Donna's request) ---------- */
+.offmarket{display:flex; align-items:center; justify-content:space-between; gap:1.2rem; flex-wrap:wrap;
+  margin:0 0 1.6rem; padding:1.1rem 1.4rem; border-radius:var(--r,20px); text-decoration:none;
+  background:linear-gradient(120deg,rgba(201,169,110,.14),rgba(201,169,110,.05));
+  border:1px solid rgba(201,169,110,.34); transition:border-color .3s, transform .3s var(--ease,ease), box-shadow .3s}
+.offmarket:hover{border-color:rgba(201,169,110,.6); transform:translateY(-2px); box-shadow:var(--sh,0 24px 60px -34px rgba(0,0,0,.75))}
+.offmarket .om-text{display:flex; flex-direction:column; gap:.15rem; min-width:0}
+.offmarket .om-tag{font-family:var(--sans,sans-serif); font-weight:600; font-size:.72rem; letter-spacing:.06em; text-transform:uppercase; color:var(--au,#c9a96e)}
+.offmarket .om-text b{font-family:var(--sans,sans-serif); font-weight:600; font-size:1.05rem; color:var(--tx,#f3f5f1)}
+.offmarket .om-sub{font-family:var(--body,sans-serif); font-size:.9rem; color:var(--tx-2,#aab0a7)}
+.offmarket .om-call{display:inline-flex; align-items:center; gap:.5rem; flex:none; white-space:nowrap;
+  font-family:var(--sans,sans-serif); font-weight:600; font-size:.92rem; color:#1a1610; background:var(--au,#c9a96e);
+  padding:.72rem 1.2rem; border-radius:var(--r-pill,999px); transition:background .2s}
+.offmarket .om-call svg{width:18px; height:18px}
+.offmarket:hover .om-call{background:var(--au-soft,#e3cfa4)}
+
+/* ---------- Donna's pinned spotlight card (first in the grid) ---------- */
+.listings .card:first-child{border-color:rgba(201,169,110,.45)!important;
+  box-shadow:0 0 0 1px rgba(201,169,110,.28), var(--sh,0 24px 60px -34px rgba(0,0,0,.75))!important}
+.listings .card:first-child .badge.sale{background:var(--au,#c9a96e); color:#1a1610}
+
+@media(max-width:640px){
+  .offmarket{padding:1rem 1.1rem}
+  .offmarket .om-call{width:100%; justify-content:center}
+}

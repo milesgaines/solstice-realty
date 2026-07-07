@@ -5,6 +5,17 @@ const { BRAND, COMMUNITIES, LISTINGS } = window.SOLSTICE;
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
+/* Donna's pinned spotlight listing(s): always kept present + first, even when the
+   backend/MLS feed replaces the pool. Deduped by address so a real DB row wins. */
+const PINNED = LISTINGS.filter(l => l.pin).map(l => ({ ...l }));
+function mergePinned(rows) {
+  rows = Array.isArray(rows) ? rows.slice() : [];
+  const norm = s => String(s || "").trim().toLowerCase();
+  const have = new Set(rows.map(r => norm(r.address)));
+  PINNED.forEach(p => { if (!have.has(norm(p.address))) rows.unshift({ ...p }); });
+  return rows;
+}
+
 const state = {
   source: "featured",          // "featured" | "mls"
   all: [...LISTINGS],          // active pool (featured or fetched mls)
@@ -16,8 +27,9 @@ const state = {
 };
 
 const fmtPrice = (n, lease) =>
-  lease ? "$" + n.toLocaleString() + "/mo"
-        : n >= 1e6 ? "$" + (n / 1e6).toFixed(n % 1e6 ? 2 : 1) + "M" : "$" + n.toLocaleString();
+  !n ? "Price Upon Request"
+     : lease ? "$" + n.toLocaleString() + "/mo"
+     : n >= 1e6 ? "$" + (n / 1e6).toFixed(n % 1e6 ? 2 : 1) + "M" : "$" + n.toLocaleString();
 const fmt$ = n => "$" + Math.round(n).toLocaleString();
 
 /* ---------- AI NATURAL-LANGUAGE SEARCH ----------
@@ -79,11 +91,15 @@ function apply() {
     return true;
   });
   const s = f.sort;
-  rows.sort((a, b) =>
-    s === "price-asc" ? a.price - b.price :
-    s === "price-desc" ? b.price - a.price :
-    s === "year-desc" ? (b.year || 0) - (a.year || 0) :
-    s === "sqft-desc" ? (b.sqft || 0) - (a.sqft || 0) : 0);
+  rows.sort((a, b) => {
+    // pinned (Donna's spotlight) always leads, then featured, then the chosen sort
+    const pin = (b.pin ? 1 : 0) - (a.pin ? 1 : 0); if (pin) return pin;
+    const feat = (b.featured ? 1 : 0) - (a.featured ? 1 : 0); if (feat) return feat;
+    return s === "price-asc" ? (a.price || Infinity) - (b.price || Infinity) :
+      s === "price-desc" ? (b.price || 0) - (a.price || 0) :
+      s === "year-desc" ? (b.year || 0) - (a.year || 0) :
+      s === "sqft-desc" ? (b.sqft || 0) - (a.sqft || 0) : 0;
+  });
   return rows;
 }
 
@@ -288,7 +304,7 @@ async function setSource(src) {
   const grid = $("#listings");
   if (src === "featured") {
     grid.innerHTML = `<div class="empty"><span class="spin"></span> Loading collection…</div>`;
-    try { const rows = await SIR_API.apiListings({ limit: 48 }); if (rows.length) LISTINGS.splice(0, LISTINGS.length, ...rows); } catch (e) {}
+    try { const rows = await SIR_API.apiListings({ limit: 48 }); if (rows.length) LISTINGS.splice(0, LISTINGS.length, ...mergePinned(rows)); } catch (e) {}
     state.all = [...LISTINGS]; render(); return;
   }
   // Live MLS — proxied server-side (credentials never touch the browser)
@@ -364,29 +380,30 @@ async function runAI(text) {
   }
 }
 
-/* ---------- HOME VALUATION (instant estimate) ---------- */
-window.runValuation = () => {
+/* ---------- HOME VALUATION (real data via backend AVM / live comps) ---------- */
+window.runValuation = async () => {
   const addr = $("#valAddr").value.trim();
   if (!addr) return toast("Enter a property address");
   const res = $("#valResult");
+  const btn = document.querySelector('#valuation .val-input .btn');
   res.classList.remove("show"); $("#valNum").textContent = "…";
-  // deterministic pseudo-estimate from address + community comps
-  let seed = 0; for (const c of addr.toLowerCase()) seed = (seed * 31 + c.charCodeAt(0)) % 1e7;
-  const commHit = COMMUNITIES.find(c => addr.toLowerCase().includes(c.key.toLowerCase()));
-  const base = commHit ? { "Malibu": 12.5, "Pacific Palisades": 9.5, "Manhattan Beach": 11, "Newport Beach": 8.5,
-    "Westlake Village": 4.2, "Venice": 5.5, "Brentwood": 7, "Hollywood Hills": 6 }[commHit.key] : 5;
-  const est = (base + (seed % 400) / 100) * 1e6;
-  const lo = est * 0.92, hi = est * 1.09;
-  // record the valuation interest as a lead (non-blocking, best-effort)
-  try { if (window.SIR_API) SIR_API.apiLead({ kind: "valuation", address: addr, estimate: Math.round(est), meta: { community: commHit ? commHit.key : null } }).catch(() => {}); } catch (e) {}
-  setTimeout(() => {
+  if (btn) { btn.disabled = true; btn._t = btn.textContent; btn.textContent = "Estimating…"; }
+  try {
+    const d = await SIR_API.apiValuation(addr);
     res.classList.add("show");
     $("#valBar").style.width = "0";
-    animateNum($("#valNum"), est);
-    $("#valRange").textContent = `Estimated range ${fmt$(lo)} – ${fmt$(hi)}`;
-    $("#valComm").textContent = commHit ? commHit.key : "your area";
-    requestAnimationFrame(() => $("#valBar").style.width = "68%");
-  }, 650);
+    animateNum($("#valNum"), d.value);
+    $("#valRange").textContent = `Estimated range ${fmt$(d.low)} – ${fmt$(d.high)}`;
+    $("#valComm").textContent = d.community || "your area";
+    const note = $("#valSource"); if (note) note.textContent = d.label || "";
+    requestAnimationFrame(() => $("#valBar").style.width = d.source === "rentcast" ? "80%" : "62%");
+    SIR_API.apiLead({ kind: "valuation", address: addr, estimate: d.value, meta: { community: d.community, source: d.source } }).catch(() => {});
+  } catch (e) {
+    toast("Couldn't estimate that address — try adding the city (e.g. “…, Malibu”).");
+    $("#valNum").textContent = "—";
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = btn._t || "Get Instant Value"; }
+  }
 };
 function animateNum(el, target) {
   const start = performance.now(), dur = 1400;
@@ -450,7 +467,7 @@ function boot() {
   if (window.SIR_API) {
     SIR_API.apiListings({ limit: 48 }).then(rows => {
       if (rows && rows.length) {
-        LISTINGS.splice(0, LISTINGS.length, ...rows);
+        LISTINGS.splice(0, LISTINGS.length, ...mergePinned(rows));
         if (state.source === "featured") { state.all = [...LISTINGS]; render(); }
       }
     }).catch(() => {});
