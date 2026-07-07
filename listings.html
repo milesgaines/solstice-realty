@@ -181,6 +181,11 @@
     </div>
     <div class="fld"><label>Tagline</label><input type="text" id="f_tagline" placeholder="Gated ocean-view estate on the point" maxlength="200"></div>
     <div class="fld"><label>Features (comma-separated)</label><input type="text" id="f_features" placeholder="Pool, Chef's kitchen, 3-car garage"></div>
+    <div class="row">
+      <div class="fld"><label>MLS #</label><input type="text" id="f_mls" placeholder="SR24012345"></div>
+      <div class="fld"><label>Open house</label><input type="text" id="f_openhouse" placeholder="Sun Jul 13 · 1–4 PM"></div>
+    </div>
+    <div class="fld"><label>Virtual tour link</label><input type="text" id="f_tour" placeholder="https://my.matterport.com/show/?m=…"></div>
 
     <div class="foot">
       <button class="btn-ghost" onclick="closeEditor()">Cancel</button>
@@ -275,6 +280,7 @@ function openEditor(id){
   g("f_type").value=l?.type||"House"; g("f_status").value=l?.status||"For Sale";
   g("f_waterfront").checked=!!l?.waterfront; g("f_featured").checked=l?l.featured!==false:true;
   g("f_tagline").value=l?.tagline||""; g("f_features").value=(l?.features||[]).join(", ");
+  g("f_mls").value=l?.mls||""; g("f_openhouse").value=l?.openHouse||""; g("f_tour").value=l?.tour||"";
   g("upstat").textContent=""; togglePoa(); renderPhotos();
   document.getElementById("editOverlay").classList.add("show");
 }
@@ -344,7 +350,8 @@ async function save(){
     status:document.getElementById("f_status").value,
     lease:document.getElementById("f_status").value==="For Lease", waterfront:document.getElementById("f_waterfront").checked,
     featured:document.getElementById("f_featured").checked,
-    tagline:gv("f_tagline"), features:feats, gallery:EDIT.gallery, hero:EDIT.gallery[0]||null
+    tagline:gv("f_tagline"), features:feats, gallery:EDIT.gallery, hero:EDIT.gallery[0]||null,
+    mls:gv("f_mls"), tour:gv("f_tour"), open_house:gv("f_openhouse")
   };
   if(!listing.address && !listing.gallery.length){ alert("Add at least an address or a photo."); return; }
   const btn=document.getElementById("saveBtn"); btn.disabled=true; btn.textContent="Saving…";

@@ -208,10 +208,11 @@ window.openDetail = id => {
           <div><div class="tag">${l.status}${l.waterfront ? " · Waterfront" : ""}</div>
             <div class="md-price">${fmtPrice(l.price, l.lease)}</div>
             <div style="color:var(--gold-soft);font-size:1.05rem;margin-top:.2rem">${l.address}</div>
-            <div style="color:var(--muted);font-size:.85rem">${l.city}${l.zip ? ", CA " + l.zip : ""} · ${l.community}</div>
+            <div style="color:var(--muted);font-size:.85rem">${l.city}${l.zip ? ", CA " + l.zip : ""} · ${l.community}${l.mls ? " · MLS# " + l.mls : ""}</div>
           </div>
           <button class="btn btn-ghost" onclick="toggleFav('${l.id}');this.textContent=SOLSTICE_fav('${l.id}')">${SOLSTICE_fav(l.id)}</button>
         </div>
+        ${l.openHouse ? `<div style="margin-top:1rem;padding:.7rem 1rem;border:1px solid var(--gold-soft);border-radius:12px;color:var(--gold-soft);font-size:.9rem;font-weight:600">🗓 Open House · ${l.openHouse}</div>` : ""}
         <div class="md-facts">
           <div><div class="n">${l.beds}</div><div class="l">Bedrooms</div></div>
           <div><div class="n">${l.baths}</div><div class="l">Bathrooms</div></div>
@@ -223,6 +224,7 @@ window.openDetail = id => {
         ${l.features?.length ? `<div class="md-feat">${l.features.map(x => `<span class="tag">${x}</span>`).join("")}</div>` : ""}
         <div style="margin-top:1.6rem;display:flex;gap:.8rem;flex-wrap:wrap">
           <button class="btn btn-gold" onclick="requestTour('${l.id}')">Request Private Tour</button>
+          ${l.tour ? `<a class="btn btn-ghost" href="${l.tour}" target="_blank" rel="noopener">▶ Virtual Tour</a>` : ""}
           <a class="btn btn-ghost" href="tel:${BRAND.phoneRaw}">Call Donna</a>
         </div>
       </div>
