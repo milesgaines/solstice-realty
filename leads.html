@@ -27,6 +27,9 @@
   .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px}
   .brand{font-family:var(--sans);font-weight:700;font-size:1.35rem;letter-spacing:.01em}
   .brand .r{color:var(--au);font-weight:500}
+  .nav{display:flex;gap:6px;margin-left:8px}
+  .nav a{font-family:var(--sans);font-size:.82rem;font-weight:600;text-decoration:none;color:var(--tx2);padding:.4rem .85rem;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+  .nav a.on{background:var(--au);color:#1a1610;border-color:var(--au)}
   .sub{color:var(--tx2);font-size:.9rem;margin:2px 0 18px}
 
   /* stat tiles */
@@ -127,6 +130,7 @@
 
   <div id="app" style="display:none">
     <div class="top"><div class="brand">Solstice <span class="r">CRM</span></div>
+      <div class="nav"><a href="leads.html" class="on">Leads</a><a href="listings.html">Listings</a></div>
       <button class="btn-ghost" style="margin-left:auto;font-size:.8rem;padding:.4rem .85rem" onclick="logout()">Sign out</button></div>
     <p class="sub">Every lead — social prospects &amp; website inquiries — in one pipeline. Reply, note, and follow up.</p>
 

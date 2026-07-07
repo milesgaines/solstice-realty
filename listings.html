@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Solstice CRM · Listings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0c0b;--panel:#111412;--surface:rgba(255,255,255,.045);--surface2:rgba(255,255,255,.08);
+    --line:rgba(255,255,255,.1);--line2:rgba(255,255,255,.16);--tx:#f3f5f1;--tx2:#a9afa6;--tx3:#767c73;
+    --au:#c9a96e;--au2:#e3cfa4;--r:16px;--sans:"Sora",-apple-system,sans-serif;--body:"Manrope",-apple-system,sans-serif;
+    --ok:#5fd07a;--lost:#e08a8a;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--body);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 16px 100px}
+  button{font-family:var(--sans);cursor:pointer;border:none;border-radius:999px;font-weight:600;transition:.18s}
+  input,select,textarea{font-family:var(--body);font-size:15px}
+  .btn-gold{background:var(--au);color:#1a1610;padding:.62rem 1.2rem}
+  .btn-gold:hover{background:var(--au2)}
+  .btn-ghost{background:var(--surface);color:var(--tx);border:1px solid var(--line);padding:.55rem 1rem}
+  .btn-ghost:hover{background:var(--surface2);border-color:var(--line2)}
+  a{color:var(--au2)}
+
+  .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+  .brand{font-family:var(--sans);font-weight:700;font-size:1.35rem;letter-spacing:.01em}
+  .brand .r{color:var(--au);font-weight:500}
+  .nav{display:flex;gap:6px;margin-left:8px}
+  .nav a{font-family:var(--sans);font-size:.82rem;font-weight:600;text-decoration:none;color:var(--tx2);padding:.4rem .85rem;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+  .nav a.on{background:var(--au);color:#1a1610;border-color:var(--au)}
+  .sub{color:var(--tx2);font-size:.9rem;margin:2px 0 18px}
+
+  .bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .search{flex:1;min-width:180px;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:.15rem .3rem .15rem .95rem}
+  .search input{flex:1;background:transparent;border:none;outline:none;color:var(--tx);padding:.55rem 0}
+  .search svg{width:17px;height:17px;color:var(--tx3);flex:none}
+  .msg{width:100%;font-size:.82rem;color:var(--tx2);min-height:1em}
+
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+  .lcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+  .lphoto{aspect-ratio:16/10;background:#1a1e1b center/cover no-repeat;position:relative;display:flex;align-items:flex-end}
+  .lphoto .noimg{margin:auto;color:var(--tx3);font-size:.8rem}
+  .lbadge{position:absolute;top:10px;left:10px;font-size:.64rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:.26rem .55rem;border-radius:999px;backdrop-filter:blur(6px)}
+  .lcount{position:absolute;top:10px;right:10px;font-size:.66rem;font-weight:700;color:#fff;background:rgba(0,0,0,.55);border-radius:999px;padding:.2rem .5rem}
+  .st-for-sale{background:rgba(95,208,122,.22);color:#7de6a0}
+  .st-for-lease{background:rgba(125,180,255,.22);color:#a9cbff}
+  .st-coming-soon{background:rgba(180,205,120,.22);color:#d0e0a0}
+  .st-pending{background:rgba(227,207,164,.24);color:var(--au2)}
+  .st-sold{background:rgba(255,255,255,.16);color:#e2e6df}
+  .st-off-market{background:rgba(183,156,255,.22);color:#c9b6ff}
+  .st-draft{background:rgba(255,255,255,.08);color:var(--tx3)}
+  .lbody{padding:13px 15px 15px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .lprice{font-family:var(--sans);font-weight:800;font-size:1.18rem}
+  .laddr{font-size:.9rem;color:var(--tx)}
+  .lmeta{font-size:.8rem;color:var(--tx2)}
+  .lcommunity{font-size:.72rem;color:var(--au2);text-transform:uppercase;letter-spacing:.04em}
+  .lacts{display:flex;gap:7px;margin-top:auto;padding-top:10px}
+  .lacts button{font-size:.8rem;padding:.42rem .9rem}
+  .del{margin-left:auto;background:none;border:none;color:var(--tx3);font-size:.85rem;padding:.42rem .5rem}
+  .del:hover{color:var(--lost)}
+
+  .empty{grid-column:1/-1;text-align:center;color:var(--tx2);padding:52px 16px;border:1px dashed var(--line);border-radius:var(--r)}
+  .empty b{color:var(--tx);font-family:var(--sans)}
+
+  /* gate */
+  .gate{max-width:360px;margin:60px auto;text-align:center}
+  .gate input{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--tx);padding:.85rem 1rem;border-radius:12px;font-size:16px;margin:8px 0;outline:none}
+
+  /* editor overlay */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:flex-start;justify-content:center;z-index:50;padding:24px 14px;overflow-y:auto}
+  .overlay.show{display:flex}
+  .modal{background:var(--panel);border:1px solid var(--line2);border-radius:20px;padding:22px;max-width:640px;width:100%;margin:auto}
+  .modal h3{font-family:var(--sans);margin:0 0 4px;font-size:1.2rem}
+  .modal .hint{color:var(--tx2);font-size:.82rem;margin:0 0 16px}
+  .fld{margin-bottom:12px}
+  .fld label{display:block;font-family:var(--sans);font-size:.7rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--tx2);margin-bottom:5px}
+  .modal input[type=text],.modal input[type=number],.modal select,.modal textarea{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:.7rem .9rem;outline:none;font-size:16px}
+  .modal input:focus,.modal select:focus,.modal textarea:focus{border-color:var(--au)}
+  .row{display:flex;gap:10px;flex-wrap:wrap}.row>*{flex:1;min-width:90px}
+  .chk{display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--tx);cursor:pointer;padding:.55rem 0}
+  .chk input{width:18px;height:18px;accent-color:var(--au)}
+
+  /* photo manager */
+  .drop{border:1.5px dashed var(--line2);border-radius:14px;padding:16px;text-align:center;color:var(--tx2);font-size:.86rem;cursor:pointer;background:var(--surface)}
+  .drop:hover{border-color:var(--au);color:var(--tx)}
+  .drop b{color:var(--au2)}
+  .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;margin-top:10px}
+  .ph{position:relative;aspect-ratio:1;border-radius:10px;background:#1a1e1b center/cover no-repeat;border:1px solid var(--line);overflow:hidden}
+  .ph.primary{border:2px solid var(--au)}
+  .ph .tag{position:absolute;bottom:0;left:0;right:0;font-size:.58rem;font-weight:700;text-align:center;background:var(--au);color:#1a1610;padding:2px 0;text-transform:uppercase;letter-spacing:.03em}
+  .ph .x{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;font-size:.8rem;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer}
+  .ph .star{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;border:none;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .upstat{font-size:.78rem;color:var(--tx2);margin-top:6px;min-height:1em}
+  .foot{display:flex;gap:10px;margin-top:18px}
+  .foot button{flex:1;padding:.72rem}
+  .saved{font-size:.72rem;color:var(--ok);opacity:0;transition:.2s}.saved.show{opacity:1}
+  @media(max-width:520px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="gate" class="gate" style="display:none">
+    <div class="brand">Solstice <span class="r">CRM</span></div>
+    <p class="sub" style="margin-top:10px">Private. Sign in to continue.</p>
+    <input id="gateUser" type="text" placeholder="Username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')login()">
+    <input id="gatePass" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+    <div id="gateErr" style="color:var(--lost);font-size:.82rem;min-height:1.1em;margin:2px 0 8px;text-align:left">&nbsp;</div>
+    <button class="btn-gold" id="gateBtn" style="width:100%" onclick="login()">Sign in</button>
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="top">
+      <div class="brand">Solstice <span class="r">CRM</span></div>
+      <div class="nav"><a href="leads.html">Leads</a><a href="listings.html" class="on">Listings</a></div>
+      <button class="btn-ghost" style="margin-left:auto;font-size:.8rem;padding:.4rem .85rem" onclick="logout()">Sign out</button>
+    </div>
+    <p class="sub">Your listings — add, edit, upload photos. Live ones show on your website automatically.</p>
+
+    <div class="bar">
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="q" placeholder="Search address, community…" oninput="renderGrid()">
+      </div>
+      <button class="btn-gold" onclick="openEditor()">＋ Add listing</button>
+      <span class="msg" id="msg"></span>
+    </div>
+
+    <div class="grid" id="list"></div>
+  </div>
+</div>
+
+<!-- Editor -->
+<div class="overlay" id="editOverlay">
+  <div class="modal">
+    <h3 id="edTitle">Add a listing</h3>
+    <p class="hint">Upload photos first — the starred one is the cover shown on your site.</p>
+
+    <div class="fld">
+      <label>Photos</label>
+      <div class="drop" id="drop" onclick="document.getElementById('photoInput').click()">
+        <b>Click to upload</b> or drop photos here · JPG/PNG, up to 10MB each
+      </div>
+      <input type="file" id="photoInput" accept="image/*" multiple style="display:none" onchange="onFiles(this.files)">
+      <div class="photos" id="photos"></div>
+      <div class="upstat" id="upstat"></div>
+    </div>
+
+    <div class="fld"><label>Address</label><input type="text" id="f_address" placeholder="3485 Ridgeford Dr"></div>
+    <div class="row">
+      <div class="fld"><label>Community</label><input type="text" id="f_community" list="commList" placeholder="Malibu">
+        <datalist id="commList"><option>Malibu</option><option>Pacific Palisades</option><option>Westlake Village</option><option>Venice</option><option>Manhattan Beach</option><option>Newport Beach</option><option>Brentwood</option><option>Hollywood Hills</option><option>Beverly Hills</option><option>Calabasas</option><option>Santa Monica</option></datalist>
+      </div>
+      <div class="fld"><label>City</label><input type="text" id="f_city" placeholder="Malibu"></div>
+      <div class="fld" style="max-width:120px"><label>Zip</label><input type="text" id="f_zip" placeholder="90265"></div>
+    </div>
+
+    <div class="row">
+      <div class="fld"><label>Price (USD)</label><input type="number" id="f_price" placeholder="4500000" min="0"></div>
+      <div class="fld" style="flex:0 0 auto"><label>&nbsp;</label><label class="chk"><input type="checkbox" id="f_poa" onchange="togglePoa()"> Price on request</label></div>
+    </div>
+    <div class="row">
+      <div class="fld"><label>Beds</label><input type="number" id="f_beds" min="0" placeholder="4"></div>
+      <div class="fld"><label>Baths</label><input type="number" id="f_baths" min="0" placeholder="5"></div>
+      <div class="fld"><label>Sq ft</label><input type="number" id="f_sqft" min="0" placeholder="3800"></div>
+    </div>
+    <div class="row">
+      <div class="fld"><label>Lot (acres)</label><input type="number" id="f_lot" step="0.01" min="0" placeholder="0.4"></div>
+      <div class="fld"><label>Year built</label><input type="number" id="f_year" min="1800" placeholder="2018"></div>
+      <div class="fld"><label>View</label><input type="text" id="f_view" placeholder="Ocean"></div>
+    </div>
+    <div class="row">
+      <div class="fld"><label>Type</label><select id="f_type"><option>House</option><option>Condo</option><option>Townhouse</option><option>Land</option><option>Multi-Family</option><option>Other</option></select></div>
+      <div class="fld"><label>Status</label><select id="f_status">
+        <option>For Sale</option><option>For Lease</option><option>Pending</option><option>Sold</option><option>Coming Soon</option><option>Off-Market</option><option value="Draft">Draft (hidden)</option>
+      </select></div>
+    </div>
+    <div class="row">
+      <label class="chk"><input type="checkbox" id="f_waterfront"> Waterfront</label>
+      <label class="chk"><input type="checkbox" id="f_featured" checked> Featured</label>
+    </div>
+    <div class="fld"><label>Tagline</label><input type="text" id="f_tagline" placeholder="Gated ocean-view estate on the point" maxlength="200"></div>
+    <div class="fld"><label>Features (comma-separated)</label><input type="text" id="f_features" placeholder="Pool, Chef's kitchen, 3-car garage"></div>
+
+    <div class="foot">
+      <button class="btn-ghost" onclick="closeEditor()">Cancel</button>
+      <button class="btn-gold" id="saveBtn" onclick="save()">Save listing</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FN = "https://enktupvwcsojqthiimvu.supabase.co/functions/v1";
+const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVua3R1cHZ3Y3NvanF0aGlpbXZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTAyMTksImV4cCI6MjA5ODQyNjIxOX0.tf3oGT6_yPoqBwtBe6-WELQd1pYrfH7TO6Y0kuBr6BI";
+let TOKEN = localStorage.getItem("sir_leads_token") || "";
+let LISTINGS = [];
+let EDIT = null; // {id, gallery:[...], _new:bool}
+const H = () => ({ "apikey": ANON, "Authorization": "Bearer " + ANON, "Content-Type": "application/json" });
+const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = n => "$" + Number(n).toLocaleString("en-US");
+const stKey = s => (s||"For Sale").toLowerCase().replace(/[^a-z]+/g,"-").replace(/^-+|-+$/g,"");
+
+function boot(){ TOKEN ? show() : (document.getElementById("gate").style.display="block"); }
+async function login(){
+  const u=document.getElementById("gateUser").value.trim(), p=document.getElementById("gatePass").value;
+  const err=document.getElementById("gateErr"), btn=document.getElementById("gateBtn");
+  if(!u||!p){ err.textContent="Enter your username and password."; return; }
+  err.innerHTML="&nbsp;"; btn.disabled=true; btn.textContent="Signing in…";
+  try{
+    const r=await fetch(`${FN}/sir-leads`,{method:"POST",headers:H(),body:JSON.stringify({action:"login",username:u,password:p})});
+    const d=await r.json();
+    if(r.ok && d.token){ TOKEN=d.token; localStorage.setItem("sir_leads_token",d.token); show(); return; }
+    err.textContent=d.error||"Incorrect username or password.";
+  }catch(e){ err.textContent="Couldn't reach the server. Try again."; }
+  btn.disabled=false; btn.textContent="Sign in";
+}
+function logout(){ localStorage.removeItem("sir_leads_token"); location.reload(); }
+function show(){ document.getElementById("gate").style.display="none"; document.getElementById("app").style.display="block"; load(); }
+
+async function load(){
+  const msg=document.getElementById("msg"); msg.textContent="Loading…";
+  try{
+    const r=await fetch(`${FN}/sir-listings?token=${encodeURIComponent(TOKEN)}`,{headers:H()});
+    if(r.status===401){ localStorage.removeItem("sir_leads_token"); location.reload(); return; }
+    const d=await r.json();
+    LISTINGS=d.listings||[]; msg.textContent="";
+    renderGrid();
+  }catch(e){ msg.textContent="Could not reach the server."; }
+}
+
+function renderGrid(){
+  const q=(document.getElementById("q").value||"").toLowerCase().trim();
+  const rows=LISTINGS.filter(l=>!q || (`${l.address||""} ${l.community||""} ${l.city||""}`.toLowerCase().includes(q)));
+  const list=document.getElementById("list");
+  if(!rows.length){ list.innerHTML=`<div class="empty"><b>${LISTINGS.length?'No matches.':'No listings yet.'}</b><br><br>Click <b>＋ Add listing</b> to create your first one — add photos, price, and details, and it goes live on your site.</div>`; return; }
+  list.innerHTML=rows.map(card).join("");
+}
+function card(l){
+  const st=l.status||"For Sale";
+  const cover=l.hero||(l.gallery&&l.gallery[0])||"";
+  const price=(l.price>0)?money(l.price)+(l.lease?" / mo":""):"Price on request";
+  const specs=[l.beds?l.beds+" bd":"",l.baths?l.baths+" ba":"",l.sqft?Number(l.sqft).toLocaleString()+" sqft":""].filter(Boolean).join(" · ");
+  const n=(l.gallery||[]).length;
+  return `<div class="lcard">
+    <div class="lphoto" style="${cover?`background-image:url('${esc(cover)}')`:''}">
+      ${cover?'':'<span class="noimg">No photo</span>'}
+      <span class="lbadge st-${stKey(st)}">${esc(st)}</span>
+      ${n>1?`<span class="lcount">▦ ${n}</span>`:''}
+    </div>
+    <div class="lbody">
+      ${l.community?`<div class="lcommunity">${esc(l.community)}</div>`:''}
+      <div class="lprice">${price}</div>
+      <div class="laddr">${esc(l.address||"Address not set")}</div>
+      <div class="lmeta">${specs||"—"}${l.type?" · "+esc(l.type):""}</div>
+      <div class="lacts">
+        <button class="btn-ghost" onclick="openEditor('${l.id}')">Edit</button>
+        <button class="del" onclick="del('${l.id}')" title="Delete">🗑 Delete</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ---------- editor ---------- */
+function newId(){ return "SIR-" + Date.now().toString(36) + Math.random().toString(36).slice(2,5); }
+function openEditor(id){
+  const l = id ? LISTINGS.find(x=>x.id===id) : null;
+  EDIT = { id: l? l.id : newId(), gallery: l? (l.gallery||[]).slice() : [], _new: !l };
+  document.getElementById("edTitle").textContent = l ? "Edit listing" : "Add a listing";
+  const g=id=>document.getElementById(id);
+  g("f_address").value=l?.address||""; g("f_community").value=l?.community||""; g("f_city").value=l?.city||""; g("f_zip").value=l?.zip||"";
+  g("f_price").value=(l&&l.price>0)?l.price:"";
+  g("f_poa").checked = l ? (l.price===0) : false;
+  g("f_beds").value=l?.beds??""; g("f_baths").value=l?.baths??""; g("f_sqft").value=l?.sqft??"";
+  g("f_lot").value=l?.lot??""; g("f_year").value=l?.year??""; g("f_view").value=l?.view||"";
+  g("f_type").value=l?.type||"House"; g("f_status").value=l?.status||"For Sale";
+  g("f_waterfront").checked=!!l?.waterfront; g("f_featured").checked=l?l.featured!==false:true;
+  g("f_tagline").value=l?.tagline||""; g("f_features").value=(l?.features||[]).join(", ");
+  g("upstat").textContent=""; togglePoa(); renderPhotos();
+  document.getElementById("editOverlay").classList.add("show");
+}
+function closeEditor(){ document.getElementById("editOverlay").classList.remove("show"); EDIT=null; }
+function togglePoa(){ const poa=document.getElementById("f_poa").checked; const pr=document.getElementById("f_price"); pr.disabled=poa; pr.style.opacity=poa?.4:1; }
+
+function renderPhotos(){
+  const el=document.getElementById("photos");
+  el.innerHTML=(EDIT.gallery||[]).map((u,i)=>`<div class="ph ${i===0?'primary':''}" style="background-image:url('${esc(u)}')">
+      ${i===0?'<span class="tag">Cover</span>':'<button class="star" title="Make cover" onclick="setPrimary('+i+')">★</button>'}
+      <button class="x" title="Remove" onclick="removePhoto('+i+')">✕</button>
+    </div>`).join("");
+}
+function setPrimary(i){ const g=EDIT.gallery; const [x]=g.splice(i,1); g.unshift(x); renderPhotos(); }
+function removePhoto(i){ EDIT.gallery.splice(i,1); renderPhotos(); }
+
+function downscale(file, max=1600, q=0.82){
+  return new Promise((res,rej)=>{
+    const rd=new FileReader();
+    rd.onload=()=>{ const img=new Image(); img.onload=()=>{
+      let w=img.width,h=img.height;
+      if(w>max||h>max){ const s=Math.min(max/w,max/h); w=Math.round(w*s); h=Math.round(h*s); }
+      const c=document.createElement("canvas"); c.width=w; c.height=h;
+      c.getContext("2d").drawImage(img,0,0,w,h);
+      res(c.toDataURL("image/jpeg",q));
+    }; img.onerror=rej; img.src=rd.result; };
+    rd.onerror=rej; rd.readAsDataURL(file);
+  });
+}
+async function onFiles(files){
+  const arr=[...files].filter(f=>f.type.startsWith("image/"));
+  if(!arr.length) return;
+  const stat=document.getElementById("upstat");
+  let done=0;
+  for(const f of arr){
+    stat.textContent=`Uploading ${done+1} of ${arr.length}…`;
+    try{
+      const dataUrl=await downscale(f);
+      const r=await fetch(`${FN}/sir-listings`,{method:"POST",headers:H(),body:JSON.stringify({token:TOKEN,action:"upload",id:EDIT.id,dataUrl})});
+      const d=await r.json();
+      if(d.url){ EDIT.gallery.push(d.url); renderPhotos(); }
+      else stat.textContent="Upload failed: "+(d.error||"error");
+    }catch(e){ stat.textContent="Upload failed."; }
+    done++;
+  }
+  stat.textContent=`${EDIT.gallery.length} photo${EDIT.gallery.length===1?'':'s'} attached.`;
+  document.getElementById("photoInput").value="";
+}
+// drag & drop
+(function(){ const d=document.getElementById("drop"); if(!d) return;
+  ["dragover","dragenter"].forEach(e=>d.addEventListener(e,ev=>{ev.preventDefault();d.style.borderColor="var(--au)";}));
+  ["dragleave","drop"].forEach(e=>d.addEventListener(e,ev=>{ev.preventDefault();d.style.borderColor="";}));
+  d.addEventListener("drop",ev=>{ if(ev.dataTransfer&&ev.dataTransfer.files) onFiles(ev.dataTransfer.files); });
+})();
+
+const gv=id=>document.getElementById(id).value.trim();
+async function save(){
+  if(!EDIT) return;
+  const poa=document.getElementById("f_poa").checked;
+  const feats=gv("f_features").split(",").map(s=>s.trim()).filter(Boolean);
+  const listing={
+    id:EDIT.id, address:gv("f_address"), community:gv("f_community"), city:gv("f_city"), zip:gv("f_zip"),
+    price: poa?0:(parseInt(gv("f_price"))||0),
+    beds:parseInt(gv("f_beds"))||0, baths:parseInt(gv("f_baths"))||0,
+    sqft:gv("f_sqft")?parseInt(gv("f_sqft")):null, lot:gv("f_lot")?Number(gv("f_lot")):null,
+    year:gv("f_year")?parseInt(gv("f_year")):null, type:gv("f_type"), view:gv("f_view"),
+    status:document.getElementById("f_status").value,
+    lease:document.getElementById("f_status").value==="For Lease", waterfront:document.getElementById("f_waterfront").checked,
+    featured:document.getElementById("f_featured").checked,
+    tagline:gv("f_tagline"), features:feats, gallery:EDIT.gallery, hero:EDIT.gallery[0]||null
+  };
+  if(!listing.address && !listing.gallery.length){ alert("Add at least an address or a photo."); return; }
+  const btn=document.getElementById("saveBtn"); btn.disabled=true; btn.textContent="Saving…";
+  try{
+    const r=await fetch(`${FN}/sir-listings`,{method:"POST",headers:H(),body:JSON.stringify({token:TOKEN,action:"save",listing})});
+    const d=await r.json();
+    if(!d.ok){ alert("Save failed: "+(d.error||"error")); btn.disabled=false; btn.textContent="Save listing"; return; }
+    closeEditor(); await load();
+  }catch(e){ alert("Save failed — couldn't reach the server."); }
+  btn.disabled=false; btn.textContent="Save listing";
+}
+async function del(id){
+  const l=LISTINGS.find(x=>x.id===id);
+  if(!confirm(`Delete "${l?.address||id}"? This can't be undone.`)) return;
+  try{ await fetch(`${FN}/sir-listings`,{method:"POST",headers:H(),body:JSON.stringify({token:TOKEN,action:"delete",id})}); }catch(e){}
+  load();
+}
+
+boot();
+</script>
+</body>
+</html>
