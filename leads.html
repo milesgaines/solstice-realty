@@ -108,9 +108,9 @@
   /* gate + modal */
   .gate{max-width:360px;margin:60px auto;text-align:center}
   .gate input{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--tx);padding:.85rem 1rem;border-radius:12px;font-size:16px;margin:14px 0;outline:none}
-  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:50;padding:16px}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:50;padding:16px;overflow-y:auto}
   .overlay.show{display:flex}
-  .modal{background:var(--panel);border:1px solid var(--line2);border-radius:20px;padding:22px;max-width:400px;width:100%}
+  .modal{background:var(--panel);border:1px solid var(--line2);border-radius:20px;padding:22px;max-width:400px;width:100%;max-height:88vh;overflow-y:auto}
   .modal h3{font-family:var(--sans);margin:0 0 14px}
   .modal input,.modal select,.modal textarea{width:100%;background:var(--bg);border:1px solid var(--line);color:var(--tx);border-radius:10px;padding:.7rem .9rem;margin-bottom:10px;outline:none;font-size:16px}
   .modal .row{display:flex;gap:8px}.modal .row>*{flex:1}
@@ -130,7 +130,7 @@
 
   <div id="app" style="display:none">
     <div class="top"><div class="brand">Solstice <span class="r">CRM</span></div>
-      <div class="nav"><a href="leads.html" class="on">Leads</a><a href="listings.html">Listings</a></div>
+      <div class="nav"><a href="dashboard.html">Home</a><a href="leads.html" class="on">Leads</a><a href="listings.html">Listings</a></div>
       <button class="btn-ghost" style="margin-left:auto;font-size:.8rem;padding:.4rem .85rem" onclick="logout()">Sign out</button></div>
     <p class="sub">Every lead — social prospects &amp; website inquiries — in one pipeline. Reply, note, and follow up.</p>
 
@@ -149,6 +149,7 @@
       </select></div>
       <button class="btn-gold" onclick="openAdd()">＋ Add lead</button>
       <button class="btn-ghost" id="scanBtn" onclick="runScan()">⟳ Scan</button>
+      <button class="btn-ghost" onclick="exportCSV()">⭳ Export</button>
       <span class="scanmsg" id="scanMsg"></span>
     </div>
 
@@ -157,7 +158,7 @@
 </div>
 
 <!-- Add lead modal -->
-<div class="overlay" id="addOverlay">
+<div class="overlay" id="addOverlay" onclick="if(event.target===this)closeAdd()">
   <div class="modal">
     <h3>Add a lead</h3>
     <input id="a_name" placeholder="Name">
@@ -176,17 +177,32 @@
   </div>
 </div>
 
+<!-- Matching homes modal -->
+<div class="overlay" id="matchOverlay" onclick="if(event.target===this)closeMatches()">
+  <div class="modal">
+    <h3 id="matchTitle">Matching homes</h3>
+    <div id="matchBody"></div>
+    <div class="row" style="margin-top:14px">
+      <button class="btn-ghost" onclick="closeMatches()">Close</button>
+      <button class="btn-gold" onclick="copyMatches(this)">⧉ Copy list</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const FN = "https://enktupvwcsojqthiimvu.supabase.co/functions/v1";
 const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVua3R1cHZ3Y3NvanF0aGlpbXZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTAyMTksImV4cCI6MjA5ODQyNjIxOX0.tf3oGT6_yPoqBwtBe6-WELQd1pYrfH7TO6Y0kuBr6BI";
 let TOKEN = localStorage.getItem("sir_leads_token") || "";
 let STAGE = "";
 let TEMP = "";
+let LEADS = [], HOMES = [], HOMES_LOADED = false, MATCH_TXT = "";
 const STAGES = [["","All"],["new","New"],["contacted","Contacted"],["qualified","Qualified"],["nurturing","Nurturing"],["won","Won"],["lost","Lost"]];
 const TEMPCHIPS = [["","All"],["hot","🔥 Hot"],["warm","🟡 Warm"],["cold","⚪ Cold"]];
 const TEMPLBL = {hot:"🔥 Hot", warm:"🟡 Warm", cold:"⚪ Cold"};
 const H = () => ({ "apikey": ANON, "Authorization": "Bearer " + ANON, "Content-Type": "application/json" });
 const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const safeUrl = u => { u=String(u==null?"":u); return /^(https?:|tel:|mailto:)/i.test(u)?u:"#"; };
+const cssBg = u => u ? `background-image:url('${String(u).replace(/['"()\\]/g,"").replace(/\s/g,"%20")}')` : "";
 const today = () => new Date().toISOString().slice(0,10);
 const ago = t => { if(!t) return ""; const d=(Date.now()-new Date(t))/1000; if(d<3600) return Math.round(d/60)+"m"; if(d<86400) return Math.round(d/3600)+"h"; return Math.round(d/86400)+"d"; };
 
@@ -222,10 +238,12 @@ async function load(){
   }catch(e){ list.innerHTML='<div class="empty">Could not reach the server.</div>'; return; }
   renderStats(d.stats||{}); renderPipe(d.stats||{}); renderTemps(d.stats||{});
   const leads=d.leads||[];
+  LEADS=leads;
   if(!leads.length){
     list.innerHTML=`<div class="empty"><b>No leads here yet.</b><br><br>Website inquiries land here automatically. Add one manually with <b>＋ Add lead</b>, or connect a social source to start prospecting.</div>`;
     return;
   }
+  await ensureHomes();
   list.innerHTML=leads.map(card).join("");
 }
 
@@ -264,12 +282,14 @@ function card(l){
   const acts=[];
   if(l.phone) acts.push(`<a class="btn-ghost" href="tel:${esc(l.phone)}">📞 Call</a>`);
   if(l.email) acts.push(`<a class="btn-ghost" href="mailto:${esc(l.email)}">✉ Email</a>`);
-  if(l.url) acts.push(`<a class="btn-ghost" href="${esc(l.url)}" target="_blank" rel="noopener">↗ Post</a>`);
+  if(l.url) acts.push(`<a class="btn-ghost" href="${safeUrl(l.url)}" target="_blank" rel="noopener">↗ Post</a>`);
+  const nMatch=l.location?matchHomes(l.location).length:0;
+  if(nMatch) acts.push(`<button class="btn-ghost" onclick="showMatches('${l.id}')">🏡 ${nMatch} match${nMatch>1?'es':''}</button>`);
   return `<div class="card t-${temp} ${due?'due':''}">
     <div class="crow">
       <span class="badge b-${temp}">${TEMPLBL[temp]}</span>
       <span class="who">${who}</span>
-      <span class="pill p-${l.platform}">${esc(l.platform)}</span>
+      <span class="pill p-${(l.platform||'').replace(/[^a-z]/gi,'')}">${esc(l.platform)}</span>
       ${l.location?`<span class="chip">${esc(l.location)}</span>`:''}
       ${l.intent&&l.intent!=='other'?`<span class="chip">${esc(l.intent)}</span>`:''}
       ${due?'<span class="due-tag">follow up</span>':''}
@@ -337,6 +357,53 @@ async function runScan(){
   b.disabled=false; b.textContent="⟳ Scan"; load();
 }
 
+/* ---- lead → listing matching ---- */
+async function ensureHomes(){
+  if(HOMES_LOADED) return;
+  try{ const r=await fetch(`${FN}/sir-properties?limit=99`,{headers:H()}); const d=await r.json(); HOMES=(d.results||[]).filter(h=>String(h.status||'').toLowerCase()!=='sold'); HOMES_LOADED=true; }catch(e){}
+}
+function matchHomes(loc){
+  if(!loc) return [];
+  const q=String(loc).toLowerCase();
+  return HOMES.filter(h=>{
+    const c=(h.community||"").toLowerCase(), city=(h.city||"").toLowerCase();
+    return (c && (c.includes(q)||q.includes(c))) || (city && (city.includes(q)||q.includes(city)));
+  });
+}
+function priceStr(h){ return h.price>0 ? ("$"+Number(h.price).toLocaleString()+(h.lease?" /mo":"")) : "Price on request"; }
+function showMatches(id){
+  const l=LEADS.find(x=>x.id===id); if(!l) return;
+  const m=matchHomes(l.location);
+  document.getElementById("matchTitle").textContent=`${m.length} home${m.length!==1?'s':''} in ${l.location}`;
+  document.getElementById("matchBody").innerHTML = m.length ? m.map(h=>
+    `<div style="display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)">
+      <div style="width:56px;height:44px;border-radius:8px;flex:none;background:#1a1e1b center/cover no-repeat;${cssBg(h.hero)}"></div>
+      <div><div style="font-family:var(--sans);font-weight:700">${priceStr(h)}</div>
+      <div style="font-size:.82rem;color:var(--tx2)">${esc(h.address||'—')} · ${esc(h.community||'')} · ${h.beds||0} bd / ${h.baths||0} ba</div></div>
+    </div>`).join("")
+    : `<p class="sub">No current listings match ${esc(l.location)}. Off-market options may still fit — worth a call.</p>`;
+  MATCH_TXT = m.map(h=>`${priceStr(h)} — ${h.address||''}, ${h.community||''} (${h.beds||0}bd/${h.baths||0}ba)`).join("\n");
+  document.getElementById("matchOverlay").classList.add("show");
+}
+function closeMatches(){ document.getElementById("matchOverlay").classList.remove("show"); }
+function copyMatches(btn){ if(!MATCH_TXT){ btn.textContent="Nothing to copy"; return; } navigator.clipboard.writeText(MATCH_TXT); const o=btn.textContent; btn.textContent="✓ Copied"; setTimeout(()=>btn.textContent=o,1200); }
+
+/* ---- CSV export ---- */
+function exportCSV(){
+  if(!LEADS.length){ alert("No leads to export in this view."); return; }
+  const cols=[["Name",l=>l.name||l.author||""],["Platform",l=>l.platform],["Temperature",l=>l.temperature||""],
+    ["Stage",l=>l.stage||""],["Location",l=>l.location||""],["Intent",l=>l.intent||""],["Score",l=>l.score??""],
+    ["Phone",l=>l.phone||""],["Email",l=>l.email||""],["Title",l=>l.title||""],["Why",l=>l.temperature_reason||""],
+    ["URL",l=>l.url||""],["Follow-up",l=>l.next_followup||""],["Notes",l=>l.notes||""],["Created",l=>l.created_at||""]];
+  const q=v=>{ v=String(v==null?"":v).replace(/"/g,'""'); return /[",\n]/.test(v)?`"${v}"`:v; };
+  const rows=[cols.map(c=>c[0]).join(",")].concat(LEADS.map(l=>cols.map(c=>q(c[1](l))).join(",")));
+  const blob=new Blob(["﻿"+rows.join("\r\n")],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download=`solstice-leads-${today()}.csv`; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") document.querySelectorAll(".overlay.show").forEach(o=>o.classList.remove("show")); });
 boot();
 </script>
 </body>

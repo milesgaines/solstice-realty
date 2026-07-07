@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Solstice CRM · Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#0a0c0b;--panel:#111412;--surface:rgba(255,255,255,.045);--surface2:rgba(255,255,255,.08);
+    --line:rgba(255,255,255,.1);--line2:rgba(255,255,255,.16);--tx:#f3f5f1;--tx2:#a9afa6;--tx3:#767c73;
+    --au:#c9a96e;--au2:#e3cfa4;--r:16px;--sans:"Sora",-apple-system,sans-serif;--body:"Manrope",-apple-system,sans-serif;
+    --ok:#5fd07a;--warn:#e08a8a;--hot:#ff8a5c;--blue:#7db4ff;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--tx);font-family:var(--body);-webkit-font-smoothing:antialiased;line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:22px 16px 100px}
+  button{font-family:var(--sans);cursor:pointer;border:none;border-radius:999px;font-weight:600;transition:.18s}
+  .btn-gold{background:var(--au);color:#1a1610;padding:.55rem 1rem}
+  .btn-gold:hover{background:var(--au2)}
+  .btn-ghost{background:var(--surface);color:var(--tx);border:1px solid var(--line);padding:.5rem .9rem}
+  .btn-ghost:hover{background:var(--surface2);border-color:var(--line2)}
+  a{color:var(--au2)}
+
+  .top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:4px}
+  .brand{font-family:var(--sans);font-weight:700;font-size:1.35rem}
+  .brand .r{color:var(--au);font-weight:500}
+  .nav{display:flex;gap:6px;margin-left:8px}
+  .nav a{font-family:var(--sans);font-size:.82rem;font-weight:600;text-decoration:none;color:var(--tx2);padding:.4rem .85rem;border-radius:999px;border:1px solid var(--line);background:var(--surface)}
+  .nav a.on{background:var(--au);color:#1a1610;border-color:var(--au)}
+  .hello{font-family:var(--sans);font-weight:700;font-size:1.5rem;margin:14px 0 2px}
+  .sub{color:var(--tx2);font-size:.88rem;margin:0 0 18px}
+
+  .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+  .tile{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:15px 16px}
+  .tile .n{font-family:var(--sans);font-weight:800;font-size:1.75rem;line-height:1}
+  .tile .l{font-size:.72rem;color:var(--tx2);margin-top:6px;letter-spacing:.01em}
+  .tile.hot .n{color:var(--hot)} .tile.new .n{color:var(--blue)} .tile.due .n{color:var(--au2)}
+  .tile.live .n{color:var(--ok)} .tile.val .n{color:var(--au2);font-size:1.3rem}
+
+  h2{font-family:var(--sans);font-size:1.05rem;font-weight:700;margin:22px 0 12px;display:flex;align-items:center;gap:8px}
+  h2 .c{font-size:.78rem;color:var(--tx3);font-weight:500}
+
+  .needs{display:flex;flex-direction:column;gap:10px}
+  .nlead{background:var(--panel);border:1px solid rgba(255,110,70,.35);border-radius:14px;padding:14px 15px}
+  .nrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .who{font-family:var(--sans);font-weight:600}
+  .pill{font-size:.64rem;font-weight:700;padding:.2rem .5rem;border-radius:999px;text-transform:capitalize}
+  .p-web{background:#8a8f8722;color:#c7ccc4}.p-reddit{background:#ff45001f;color:#ff8a5c}.p-bluesky{background:#3b82f61f;color:#7db4ff}.p-website{background:#c9a96e22;color:var(--au2)}.p-manual{background:var(--surface2);color:var(--tx2)}
+  .chip{font-size:.72rem;color:var(--tx2);background:var(--surface2);border-radius:999px;padding:.16rem .5rem}
+  .badge-hot{font-size:.64rem;font-weight:800;letter-spacing:.03em;padding:.22rem .5rem;border-radius:999px;background:rgba(255,110,70,.16);color:var(--hot);box-shadow:inset 0 0 0 1px rgba(255,110,70,.35)}
+  .score{margin-left:auto;font-family:var(--sans);font-weight:800;color:var(--ok)}
+  .why{font-size:.82rem;color:var(--tx2);margin:.4rem 0}
+  .nacts{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
+  .nacts a,.nacts button{font-size:.78rem;padding:.4rem .8rem;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+  .allgood{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--tx2)}
+  .allgood b{color:var(--ok);font-family:var(--sans)}
+
+  .panels{display:grid;grid-template-columns:1.4fr 1fr;gap:14px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 17px}
+  .panel h3{font-family:var(--sans);font-size:.82rem;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--tx2);margin:0 0 14px}
+  .spark{display:flex;align-items:flex-end;gap:3px;height:90px}
+  .spark .b{flex:1;background:linear-gradient(var(--au2),var(--au));border-radius:3px 3px 0 0;min-height:2px;position:relative}
+  .spark .b.zero{background:var(--surface2)}
+  .sparkx{display:flex;justify-content:space-between;color:var(--tx3);font-size:.68rem;margin-top:6px}
+  .barrow{display:flex;align-items:center;gap:10px;margin-bottom:10px;font-size:.84rem}
+  .barrow .k{width:74px;color:var(--tx2);text-transform:capitalize;flex:none}
+  .barrow .track{flex:1;background:var(--surface2);border-radius:999px;height:9px;overflow:hidden}
+  .barrow .fill{height:100%;border-radius:999px;background:var(--au)}
+  .barrow .v{width:26px;text-align:right;color:var(--tx);font-weight:700;flex:none}
+  .fill.hot{background:var(--hot)}.fill.warm{background:var(--au2)}.fill.cold{background:var(--tx3)}
+
+  .funnel{display:flex;gap:8px;flex-wrap:wrap}
+  .fstg{flex:1;min-width:92px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;text-align:center}
+  .fstg .n{font-family:var(--sans);font-weight:800;font-size:1.3rem}
+  .fstg .l{font-size:.7rem;color:var(--tx2);margin-top:3px;text-transform:capitalize}
+
+  .oh{display:flex;gap:10px;align-items:center;padding:9px 0;border-top:1px solid var(--line)}
+  .oh:first-child{border-top:none}
+  .oh .thumb{width:52px;height:40px;border-radius:8px;background:#1a1e1b center/cover;flex:none}
+  .oh .a{font-size:.86rem;color:var(--tx)}.oh .t{font-size:.76rem;color:var(--au2)}
+  .lstatus{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}
+
+  .gate{max-width:360px;margin:60px auto;text-align:center}
+  .gate input{width:100%;background:var(--surface);border:1px solid var(--line);color:var(--tx);padding:.85rem 1rem;border-radius:12px;font-size:16px;margin:8px 0;outline:none}
+  @media(max-width:820px){.tiles{grid-template-columns:repeat(2,1fr)}.panels{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="gate" class="gate" style="display:none">
+    <div class="brand">Solstice <span class="r">CRM</span></div>
+    <p class="sub" style="margin-top:10px">Private. Sign in to continue.</p>
+    <input id="gateUser" type="text" placeholder="Username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" onkeydown="if(event.key==='Enter')login()">
+    <input id="gatePass" type="password" placeholder="Password" autocomplete="current-password" onkeydown="if(event.key==='Enter')login()">
+    <div id="gateErr" style="color:var(--warn);font-size:.82rem;min-height:1.1em;margin:2px 0 8px;text-align:left">&nbsp;</div>
+    <button class="btn-gold" id="gateBtn" style="width:100%" onclick="login()">Sign in</button>
+  </div>
+
+  <div id="app" style="display:none">
+    <div class="top">
+      <div class="brand">Solstice <span class="r">CRM</span></div>
+      <div class="nav"><a href="dashboard.html" class="on">Home</a><a href="leads.html">Leads</a><a href="listings.html">Listings</a></div>
+      <button class="btn-ghost" style="margin-left:auto;font-size:.8rem" onclick="logout()">Sign out</button>
+    </div>
+    <div class="hello" id="hello">Welcome back</div>
+    <p class="sub" id="asof">Loading your day…</p>
+
+    <div class="tiles" id="tiles"></div>
+    <div id="body"></div>
+  </div>
+</div>
+
+<script>
+const FN = "https://enktupvwcsojqthiimvu.supabase.co/functions/v1";
+const ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVua3R1cHZ3Y3NvanF0aGlpbXZ1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI4NTAyMTksImV4cCI6MjA5ODQyNjIxOX0.tf3oGT6_yPoqBwtBe6-WELQd1pYrfH7TO6Y0kuBr6BI";
+let TOKEN = localStorage.getItem("sir_leads_token") || "";
+const H = () => ({ "apikey": ANON, "Authorization": "Bearer " + ANON, "Content-Type": "application/json" });
+const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = n => "$" + Number(n||0).toLocaleString("en-US");
+const short = n => { n=Number(n||0); return n>=1e6?"$"+(n/1e6).toFixed(n>=1e7?0:1)+"M":n>=1e3?"$"+Math.round(n/1e3)+"K":"$"+n; };
+const safeUrl = u => { u=String(u==null?"":u); return /^(https?:|tel:|mailto:)/i.test(u)?u:"#"; };
+const cssBg = u => u ? `background-image:url('${String(u).replace(/['"()\\]/g,"").replace(/\s/g,"%20")}')` : "";
+
+function boot(){ TOKEN ? show() : (document.getElementById("gate").style.display="block"); }
+async function login(){
+  const u=document.getElementById("gateUser").value.trim(), p=document.getElementById("gatePass").value;
+  const err=document.getElementById("gateErr"), btn=document.getElementById("gateBtn");
+  if(!u||!p){ err.textContent="Enter your username and password."; return; }
+  err.innerHTML="&nbsp;"; btn.disabled=true; btn.textContent="Signing in…";
+  try{
+    const r=await fetch(`${FN}/sir-leads`,{method:"POST",headers:H(),body:JSON.stringify({action:"login",username:u,password:p})});
+    const d=await r.json();
+    if(r.ok && d.token){ TOKEN=d.token; localStorage.setItem("sir_leads_token",d.token); show(); return; }
+    err.textContent=d.error||"Incorrect username or password.";
+  }catch(e){ err.textContent="Couldn't reach the server. Try again."; }
+  btn.disabled=false; btn.textContent="Sign in";
+}
+function logout(){ localStorage.removeItem("sir_leads_token"); location.reload(); }
+function show(){ document.getElementById("gate").style.display="none"; document.getElementById("app").style.display="block"; load(); }
+
+async function load(){
+  const hr=new Date().getHours();
+  document.getElementById("hello").textContent = (hr<12?"Good morning":hr<18?"Good afternoon":"Good evening")+", Donna";
+  let d;
+  try{
+    const r=await fetch(`${FN}/sir-dashboard?token=${encodeURIComponent(TOKEN)}`,{headers:H()});
+    if(r.status===401){ localStorage.removeItem("sir_leads_token"); location.reload(); return; }
+    d=await r.json();
+  }catch(e){ document.getElementById("asof").textContent="Could not reach the server."; return; }
+  if(!d || !d.leads || !d.listings){ document.getElementById("asof").textContent=(d&&d.error)?("Couldn't load: "+d.error):"Couldn't load your dashboard — please refresh."; return; }
+  render(d);
+}
+
+function render(d){
+  const le=d.leads||{}, li=d.listings||{};
+  const trend=Array.isArray(le.trend30)?le.trend30:[];
+  const bySource=le.by_source||{}, byTemp=le.by_temp||{}, byStatus=li.by_status||{}, byStage=le.by_stage||{};
+  const A=Array.isArray(le.actionable)?le.actionable:[];
+  const OH=Array.isArray(li.open_houses)?li.open_houses:[];
+  const gen=d.generated_at?new Date(d.generated_at):new Date();
+  document.getElementById("asof").textContent = `Here's what needs you today · updated ${gen.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}`;
+  const overdue=le.followups_overdue||0, due=(le.followups_due_today||0)+overdue;
+  document.getElementById("tiles").innerHTML=`
+    <div class="tile hot"><div class="n">${le.hot_open||0}</div><div class="l">🔥 Hot to call</div></div>
+    <div class="tile new"><div class="n">${le.new_this_week||0}</div><div class="l">🆕 New this week</div></div>
+    <div class="tile due"><div class="n">${due}</div><div class="l">⏰ Follow-ups${overdue?` · ${overdue} late`:''}</div></div>
+    <div class="tile live"><div class="n">${li.live||0}</div><div class="l">🏡 Live listings</div></div>
+    <div class="tile val"><div class="n">${short(li.portfolio_value)}</div><div class="l">💰 Portfolio value</div></div>`;
+
+  const needs = A.length ? `<div class="needs">${A.map(nlead).join("")}</div>`
+    : `<div class="allgood"><b>You're all caught up.</b><br>No hot leads waiting on a first call. New ones will show up here the moment they land.</div>`;
+
+  const max=Math.max(1,...trend.map(t=>t.count));
+  const bars=trend.length?trend.map(t=>`<div class="b ${t.count?'':'zero'}" style="height:${Math.round(t.count/max*100)}%" title="${esc(t.date)}: ${t.count}"></div>`).join(""):`<div class="sub">No lead history yet.</div>`;
+  const first=trend.length?trend[0].date.slice(5):"", lastd=trend.length?trend[trend.length-1].date.slice(5):"";
+
+  const srcVals=Object.values(bySource); const srcMax=Math.max(1,...(srcVals.length?srcVals:[1]));
+  const srcRows=Object.entries(bySource).sort((a,b)=>b[1]-a[1]).map(([k,v])=>bar(k,v,srcMax)).join("")||"<div class='sub'>No leads yet.</div>";
+  const tmax=Math.max(1,byTemp.hot||0,byTemp.warm||0,byTemp.cold||0);
+  const tempRows=[["hot",byTemp.hot||0],["warm",byTemp.warm||0],["cold",byTemp.cold||0]].map(([k,v])=>bar(k,v,tmax,k)).join("");
+
+  const stg=[["new","New"],["contacted","Contacted"],["qualified","Qualified"],["nurturing","Nurturing"],["won","Won"],["lost","Lost"]];
+  const funnel=stg.map(([k,l])=>`<div class="fstg"><div class="n">${byStage[k]||0}</div><div class="l">${l}</div></div>`).join("");
+
+  const stChips=Object.entries(byStatus).map(([k,v])=>`<span class="chip">${esc(k)} · ${v}</span>`).join("");
+  const oh=OH.length ? OH.map(h=>`<div class="oh"><div class="thumb" style="${cssBg(h.hero)}"></div><div><div class="a">${esc(h.address||'Listing')}</div><div class="t">🗓 ${esc(h.open_house)}</div></div></div>`).join("")
+    : `<div class="sub">No open houses scheduled. Add one on a listing in <a href="listings.html">Listings</a>.</div>`;
+
+  document.getElementById("body").innerHTML=`
+    <h2>🔥 Needs you now <span class="c">${A.length?A.length+' hot lead'+(A.length>1?'s':'')+' awaiting first contact':''}</span></h2>
+    ${needs}
+    <div class="panels" style="margin-top:22px">
+      <div class="panel">
+        <h3>New leads · last 30 days</h3>
+        <div class="spark">${bars}</div>
+        <div class="sparkx"><span>${first}</span><span>${lastd}</span></div>
+      </div>
+      <div class="panel">
+        <h3>Lead temperature</h3>${tempRows}
+        <h3 style="margin-top:16px">Where they come from</h3>${srcRows}
+      </div>
+    </div>
+    <h2>Pipeline <span class="c">win rate ${le.win_rate||0}%</span></h2>
+    <div class="funnel">${funnel}</div>
+    <div class="panels" style="margin-top:22px">
+      <div class="panel">
+        <h3>Portfolio</h3>
+        <div style="font-family:var(--sans);font-weight:800;font-size:1.9rem;color:var(--au2)">${money(li.portfolio_value)}</div>
+        <div class="sub" style="margin:.3rem 0 0">${li.total||0} listings · ${li.live||0} live · avg ${money(li.avg_sale_price)}</div>
+        <div class="lstatus">${stChips}</div>
+        <div style="margin-top:14px"><a class="btn-ghost" href="listings.html" style="display:inline-block;text-decoration:none">＋ Manage listings</a></div>
+      </div>
+      <div class="panel">
+        <h3>Upcoming open houses</h3>${oh}
+      </div>
+    </div>`;
+}
+function nlead(l){
+  const who=esc(l.name || (l.author?('@'+l.author):'') || 'New lead');
+  const acts=[];
+  if(l.phone) acts.push(`<a class="btn-gold" href="tel:${encodeURIComponent(l.phone)}">📞 Call</a>`);
+  if(l.suggested_reply) acts.push(`<button class="btn-ghost" data-reply="${esc(l.suggested_reply)}" onclick="copyReply(this)">⧉ Copy reply</button>`);
+  if(l.url) acts.push(`<a class="btn-ghost" href="${safeUrl(l.url)}" target="_blank" rel="noopener">↗ Open</a>`);
+  acts.push(`<button class="btn-ghost" onclick="markContacted('${l.id}',this)">✓ Mark contacted</button>`);
+  return `<div class="nlead" id="nl_${l.id}">
+    <div class="nrow">
+      <span class="badge-hot">🔥 HOT</span>
+      <span class="who">${who}</span>
+      <span class="pill p-${(l.platform||'').replace(/[^a-z]/gi,'')}">${esc(l.platform)}</span>
+      ${l.location?`<span class="chip">${esc(l.location)}</span>`:''}
+      ${l.intent&&l.intent!=='other'?`<span class="chip">${esc(l.intent)}</span>`:''}
+      <span class="score">${l.score??''}</span>
+    </div>
+    ${l.temperature_reason?`<div class="why">${esc(l.temperature_reason)}</div>`:''}
+    ${l.title?`<div class="sub" style="margin:.2rem 0 0">${esc(l.title)}</div>`:''}
+    <div class="nacts">${acts.join("")}</div>
+  </div>`;
+}
+function bar(k,v,max,cls){ return `<div class="barrow"><div class="k">${esc(k)}</div><div class="track"><div class="fill ${cls||''}" style="width:${Math.round(v/max*100)}%"></div></div><div class="v">${v}</div></div>`; }
+function copyReply(btn){ const txt=btn.getAttribute("data-reply")||""; const t=document.createElement("textarea"); t.value=txt; document.body.appendChild(t); t.select(); document.execCommand("copy"); t.remove(); const o=btn.textContent; btn.textContent="✓ Copied"; setTimeout(()=>btn.textContent=o,1200); }
+async function markContacted(id,btn){
+  btn.disabled=true; btn.textContent="…";
+  try{ await fetch(`${FN}/sir-leads`,{method:"POST",headers:H(),body:JSON.stringify({token:TOKEN,id,stage:"contacted"})});
+    const el=document.getElementById("nl_"+id); if(el){ el.style.transition=".3s"; el.style.opacity=".35"; }
+    setTimeout(load,500);
+  }catch(e){ btn.disabled=false; btn.textContent="✓ Mark contacted"; }
+}
+boot();
+</script>
+</body>
+</html>
