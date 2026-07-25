@@ -217,9 +217,6 @@ and writes `open_house`. Keep accepting both.
 
 Real, pre-existing issues. Fix them only if the task asks; don't be surprised by them.
 
-- **`README.md` is stale.** It describes a `solstice-app/` subdirectory (the repo root is
-  the app), documents `js/idx.js` as the live MLS path (superseded by the Supabase proxy),
-  and never mentions the Supabase backend or the CRM pages at all.
 - **The CRM triplicates its boilerplate.** Auth gate, `H()`, `esc`, `cssBg`, `safeUrl`,
   login/logout, and the anon key are copy-pasted across `dashboard.html`, `leads.html`, and
   `listings.html`. A change to auth behavior must be made in all three.
