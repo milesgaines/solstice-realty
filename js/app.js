@@ -21,10 +21,23 @@ const state = {
   all: [...LISTINGS],          // active pool (featured or fetched mls)
   view: "grid",                // "grid" | "map"
   favs: new Set(JSON.parse(localStorage.getItem("sir_favs") || "[]")),
+  favsOnly: false,             // saved-collection view; a filter over the pool, not a pool swap
   compare: new Set(),
   filters: { q: "", community: "", type: "", beds: 0, baths: 0, min: 0, max: Infinity, sort: "price-desc" },
   map: null, markers: null,
 };
+
+/* Favourites outlive the pool they were saved from — save a home off the MLS
+   feed, flip back to featured, and its id is no longer in state.all. Resolve
+   from the active pool *and* the bundled collection, deduped by id, so the
+   saved view never silently drops homes. */
+function favRows() {
+  const seen = new Set();
+  return [...state.all, ...LISTINGS].filter(l => {
+    if (!state.favs.has(l.id) || seen.has(l.id)) return false;
+    seen.add(l.id); return true;
+  });
+}
 
 const fmtPrice = (n, lease) =>
   !n ? "Price Upon Request"
@@ -76,7 +89,7 @@ function aiParse(text) {
 /* ---------- FILTER + SORT ---------- */
 function apply() {
   const f = state.filters;
-  let rows = state.all.filter(l => {
+  let rows = (state.favsOnly ? favRows() : state.all).filter(l => {
     if (f.community && l.community !== f.community) return false;
     if (f.type && l.status !== f.type) return false;
     if (f.beds && l.beds < f.beds) return false;
@@ -108,7 +121,10 @@ function render() {
   $("#count").textContent = rows.length;
   const grid = $("#listings");
   if (!rows.length) {
-    grid.innerHTML = `<div class="empty"><div style="font-size:2rem" class="gold">◇</div>
+    grid.innerHTML = state.favsOnly
+      ? `<div class="empty"><div style="font-size:2rem" class="gold">♡</div>
+      No saved homes yet. <button class="gold" style="text-decoration:underline" onclick="showFavs()">Back to all homes</button></div>`
+      : `<div class="empty"><div style="font-size:2rem" class="gold">◇</div>
       No matches. <button class="gold" style="text-decoration:underline" onclick="clearFilters()">Reset filters</button></div>`;
   } else {
     grid.innerHTML = rows.map(cardHTML).join("");
@@ -153,6 +169,7 @@ window.toggleFav = (id, el) => {
   if (el) { el.classList.toggle("on", state.favs.has(id)); el.textContent = state.favs.has(id) ? "♥" : "♡"; }
   $("#favCount").textContent = state.favs.size;
   toast(state.favs.has(id) ? "Saved to your collection" : "Removed from collection");
+  if (state.favsOnly) render(); // un-saving from the saved view drops the card live
 };
 
 /* ---------- COMPARE ---------- */
@@ -301,6 +318,7 @@ window.closeMapPop = () => state.map && state.map.closePopup();
 /* ---------- LIVE MLS TOGGLE (backend-powered) ---------- */
 async function setSource(src) {
   state.source = src;
+  state.favsOnly = false; syncFavBtn(); // a source flip leaves the saved view
   $("#srcSwitch").classList.toggle("on", src === "mls");
   $("#srcLabel").textContent = src === "mls" ? "Live MLS feed" : "Solstice featured";
   const grid = $("#listings");
@@ -343,15 +361,21 @@ function bindControls() {
   }));
   $("#srcSwitch").addEventListener("click", () => setSource(state.source === "featured" ? "mls" : "featured"));
 }
-window.clearFilters = () => {
+function resetFilters() {
   state.filters = { q: "", community: "", type: "", beds: 0, baths: 0, min: 0, max: Infinity, sort: "price-desc" };
   ["fCommunity", "fType", "fBeds", "fBaths", "fPrice"].forEach(id => $("#" + id).value = "");
-  $("#fSort").value = "price-desc"; $("#aiInput").value = ""; render();
-};
+  $("#fSort").value = "price-desc"; $("#aiInput").value = "";
+}
+function syncFavBtn() {
+  const btn = $("#favCount") && $("#favCount").parentElement;
+  if (btn) btn.classList.toggle("on", state.favsOnly);
+}
+window.clearFilters = () => { resetFilters(); state.favsOnly = false; syncFavBtn(); render(); };
 
 /* ---------- AI SEARCH (server-side, Claude-ready) ---------- */
 async function runAI(text) {
   if (!text.trim()) return;
+  state.favsOnly = false; syncFavBtn(); // a search leaves the saved view
   document.querySelector("#listings-sec").scrollIntoView({ behavior: "smooth" });
   const grid = $("#listings");
   grid.innerHTML = `<div class="empty"><span class="spin"></span> Searching…</div>`;
@@ -420,15 +444,17 @@ function animateNum(el, target) {
 function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), 2600); }
 window.filterByCommunity = key => { clearFilters(); state.filters.community = key; $("#fCommunity").value = key;
   document.querySelector("#listings-sec").scrollIntoView({ behavior: "smooth" }); render(); };
+/* Toggles the saved-collection view. This is a filter over the existing pool —
+   it never swaps state.all — so sort/pin order, the map view and the compare
+   tray all stay correct, and the view survives any later re-render. */
 window.showFavs = () => {
-  if (!state.favs.size) return toast("Tap ♡ on any home to save it");
-  clearFilters();
-  const saved = LISTINGS.filter(l => state.favs.has(l.id));
-  state.source = "featured"; state.all = saved.length ? saved : [...LISTINGS];
-  document.querySelector("#listings-sec").scrollIntoView({ behavior: "smooth" }); render();
-  setTimeout(() => { state.all = [...LISTINGS]; }, 100); // keep pool but render already used saved
-  // simpler: temporarily render saved
-  $("#listings").innerHTML = saved.map(cardHTML).join(""); $("#count").textContent = saved.length;
+  if (!state.favsOnly && !state.favs.size) return toast("Tap ♡ on any home to save it");
+  const on = !state.favsOnly;
+  resetFilters();
+  state.favsOnly = on;
+  syncFavBtn();
+  document.querySelector("#listings-sec").scrollIntoView({ behavior: "smooth" });
+  render();
 };
 window.submitContact = async e => {
   e.preventDefault();
