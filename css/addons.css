@@ -26,6 +26,9 @@
   box-shadow:0 0 0 1px rgba(201,169,110,.28), var(--sh,0 24px 60px -34px rgba(0,0,0,.75))!important}
 .listings .card:first-child .badge.sale{background:var(--au,#c9a96e); color:#1a1610}
 
+/* ---------- Saved-collection toggle (nav ♥) active state ---------- */
+.m-link.on{color:var(--au,#c9a96e)}
+
 @media(max-width:640px){
   .offmarket{padding:1rem 1.1rem}
   .offmarket .om-call{width:100%; justify-content:center}
