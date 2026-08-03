@@ -18,13 +18,22 @@ import WebKit
 enum Meeting {
     static let host = "meet.jit.si"
 
-    /// A stable room URL for a consult, so both people land in the same call.
-    static func roomURL(pro: String, displayName: String) -> URL {
-        let slug = "BeMehConsult" + pro.filter { $0.isLetter || $0.isNumber }
+    private static func slug(_ room: String) -> String {
+        room.filter { $0.isLetter || $0.isNumber || $0 == "-" }
+    }
+
+    /// The in-app call URL for a booking's private room, with the display name
+    /// passed through and the prejoin lobby skipped.
+    static func roomURL(room: String, displayName: String) -> URL {
         let name = displayName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "Guest"
-        // Skip the prejoin lobby and pass the display name straight through.
         let fragment = "#config.prejoinPageEnabled=false&userInfo.displayName=\"\(name)\""
-        return URL(string: "https://\(host)/\(slug)\(fragment)")!
+        return URL(string: "https://\(host)/\(slug(room))\(fragment)")!
+    }
+
+    /// The clean link to share so the esthetician (or a second device) joins
+    /// this exact booking.
+    static func inviteLink(room: String) -> URL {
+        URL(string: "https://\(host)/\(slug(room))")!
     }
 }
 

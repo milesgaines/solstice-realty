@@ -28,6 +28,24 @@ struct Appointment: Identifiable {
     let startsInMinutes: Int
     let minutes: Int
     let price: Int
+    /// The private video room for this booking (see RoomCode / Meeting).
+    let room: String
+}
+
+/// A short, human-shareable, collision-resistant room code for one booking.
+enum RoomCode {
+    static func make() -> String {
+        let raw = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+        return "bemeh-" + String(raw.prefix(10))
+    }
+}
+
+/// Everything a live consult screen needs, so any booking can open its own call.
+struct MeetingInfo: Identifiable {
+    let id = UUID()
+    let proInitial: String
+    let proDisplay: String
+    let room: String
 }
 
 struct ScanReading {

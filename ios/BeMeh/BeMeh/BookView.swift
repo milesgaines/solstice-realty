@@ -10,7 +10,7 @@ import SwiftUI
 struct BookView: View {
     @EnvironmentObject private var state: AppState
     @State private var filter = "Acne"
-    @State private var booked: Esthetician?
+    @State private var pendingBooking: MeetingInfo?
 
     private let filters = ["Acne", "Pigment", "Rosacea", "Anti-aging"]
 
@@ -46,13 +46,17 @@ struct BookView: View {
                 .padding(.bottom, 28)
             }
         }
-        .alert("Requested", isPresented: Binding(
-            get: { booked != nil },
-            set: { if !$0 { booked = nil } }
+        .alert("You're booked", isPresented: Binding(
+            get: { pendingBooking != nil },
+            set: { if !$0 { pendingBooking = nil } }
         )) {
-            Button("OK", role: .cancel) { booked = nil }
+            Button("Join now") {
+                if let b = pendingBooking { state.activeMeeting = b }
+                pendingBooking = nil
+            }
+            Button("Later", role: .cancel) { pendingBooking = nil }
         } message: {
-            Text("\(booked?.displayName ?? "") will confirm your \(booked?.nextSlot ?? "") slot. Sample data — nothing was booked.")
+            Text("Private room \(pendingBooking?.room ?? "") with \(pendingBooking?.proDisplay ?? ""). Share the invite link from inside the call so they join this exact room.")
         }
     }
 
@@ -82,8 +86,13 @@ struct BookView: View {
                         .font(.data(11))
                         .foregroundStyle(Palette.inkDim)
                     Spacer()
-                    Button("$\(pro.price)") { Haptic.success(); booked = pro }
-                        .buttonStyle(GoldButtonStyle())
+                    Button("$\(pro.price) · Book") {
+                        Haptic.success()
+                        pendingBooking = MeetingInfo(proInitial: pro.initial,
+                                                     proDisplay: pro.displayName,
+                                                     room: RoomCode.make())
+                    }
+                    .buttonStyle(GoldButtonStyle())
                 }
             }
         }

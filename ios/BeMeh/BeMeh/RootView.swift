@@ -49,6 +49,9 @@ struct RootView: View {
                 .tag(Tab.regimen)
         }
         .tint(Palette.gold)
+        .fullScreenCover(item: $state.activeMeeting) { meeting in
+            SessionView(meeting: meeting).environmentObject(state)
+        }
     }
 }
 

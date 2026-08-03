@@ -53,9 +53,6 @@ struct TodayView: View {
                 .padding(.bottom, 28)
             }
         }
-        .fullScreenCover(isPresented: $state.isInSession) {
-            SessionView()
-        }
     }
 
     private var nextAppointment: some View {
@@ -83,7 +80,9 @@ struct TodayView: View {
 
                 Button("Join session") {
                     Haptic.success()
-                    state.isInSession = true
+                    state.openMeeting(proInitial: state.upcoming.pro.initial,
+                                      proDisplay: state.upcoming.pro.displayName,
+                                      room: state.upcoming.room)
                 }
                 .buttonStyle(GoldButtonStyle(wide: true))
             }

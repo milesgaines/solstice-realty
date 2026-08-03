@@ -13,9 +13,15 @@ final class AppState: ObservableObject {
     @Published var tab: Tab = .today
     @Published var reading: ScanReading
     @Published var scanDue: Bool = true
-    @Published var isInSession: Bool = false
+    /// The consult currently on screen, if any. Setting it opens the call.
+    @Published var activeMeeting: MeetingInfo?
     @Published var savedMap: Bool = false
     @Published var regimenSlot: RegimenSlot = .morning
+
+    /// Open a live call for a booking with the given pro, in its own room.
+    func openMeeting(proInitial: String, proDisplay: String, room: String) {
+        activeMeeting = MeetingInfo(proInitial: proInitial, proDisplay: proDisplay, room: room)
+    }
 
     // Onboarding: the app opens on the sign-up gate until an account is created.
     @Published var isSignedUp: Bool = false
@@ -52,7 +58,10 @@ final class AppState: ObservableObject {
             pro: renee,
             startsInMinutes: 20,
             minutes: 45,
-            price: 85
+            price: 85,
+            // Stable room for the sample appointment, so a second device can
+            // join it directly at https://meet.jit.si/bemeh-renee-2f7k.
+            room: "bemeh-renee-2f7k"
         )
 
         reading = ScanReading(
