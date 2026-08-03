@@ -1,0 +1,112 @@
+name: iOS — build & TestFlight
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/virtual-esthetician-app-gjdls9]
+    paths:
+      - "ios/BeMeh/**"
+      - ".github/workflows/testflight.yml"
+
+jobs:
+  compile:
+    name: Compile check (no signing needed)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app || sudo xcode-select -s /Applications/Xcode_16.2.app || true
+
+      - name: Build for generic iOS device, signing disabled
+        run: |
+          cd ios/BeMeh
+          xcodebuild build \
+            -project BeMeh.xcodeproj \
+            -scheme BeMeh \
+            -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            | tail -40
+
+  testflight:
+    name: Archive, sign & upload to TestFlight
+    needs: compile
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-15
+    env:
+      APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
+      APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
+      APPSTORE_P8: ${{ secrets.APPSTORE_P8 }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      BUNDLE_ID: ${{ vars.BEMEH_BUNDLE_ID || 'com.bemehesthetics.bemeh' }}
+    steps:
+      - name: Check secrets are configured
+        run: |
+          missing=""
+          [ -z "$APPSTORE_ISSUER_ID" ] && missing="$missing APPSTORE_ISSUER_ID"
+          [ -z "$APPSTORE_KEY_ID" ]    && missing="$missing APPSTORE_KEY_ID"
+          [ -z "$APPSTORE_P8" ]        && missing="$missing APPSTORE_P8"
+          [ -z "$APPLE_TEAM_ID" ]      && missing="$missing APPLE_TEAM_ID"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secrets:$missing"
+            echo "Add them in GitHub → Settings → Secrets and variables → Actions."
+            echo "See ios/BeMeh/README.md for how to create the App Store Connect API key."
+            exit 1
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.4.app || sudo xcode-select -s /Applications/Xcode_16.2.app || true
+
+      - name: Install App Store Connect API key
+        run: |
+          mkdir -p ~/private_keys
+          printf '%s' "$APPSTORE_P8" > ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8
+
+      - name: Archive (cloud signing)
+        run: |
+          cd ios/BeMeh
+          xcodebuild archive \
+            -project BeMeh.xcodeproj \
+            -scheme BeMeh \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$RUNNER_TEMP/BeMeh.xcarchive" \
+            -allowProvisioningUpdates \
+            -allowProvisioningDeviceRegistration \
+            -authenticationKeyPath ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8 \
+            -authenticationKeyID "$APPSTORE_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            PRODUCT_BUNDLE_IDENTIFIER="$BUNDLE_ID" \
+            CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER" \
+            CODE_SIGN_STYLE=Automatic \
+            | tail -40
+
+      - name: Export & upload to App Store Connect
+        run: |
+          cat > "$RUNNER_TEMP/ExportOptions.plist" <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>method</key><string>app-store-connect</string>
+            <key>destination</key><string>upload</string>
+            <key>signingStyle</key><string>automatic</string>
+            <key>teamID</key><string>${APPLE_TEAM_ID}</string>
+            <key>manageAppVersionAndBuildNumber</key><false/>
+          </dict>
+          </plist>
+          EOF
+          xcodebuild -exportArchive \
+            -archivePath "$RUNNER_TEMP/BeMeh.xcarchive" \
+            -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath ~/private_keys/AuthKey_${APPSTORE_KEY_ID}.p8 \
+            -authenticationKeyID "$APPSTORE_KEY_ID" \
+            -authenticationKeyIssuerID "$APPSTORE_ISSUER_ID"
+
+      - name: Done
+        run: echo "Uploaded. Processing takes 5–20 min, then the build appears in App Store Connect → TestFlight."
