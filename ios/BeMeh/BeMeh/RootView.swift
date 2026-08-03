@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import UIKit
 
 struct RootView: View {
     @StateObject private var state = AppState()
