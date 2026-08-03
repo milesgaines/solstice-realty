@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BeMeh">
+<meta name="theme-color" content="#14100C">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>BeMeh</title>
+<style>
+  :root{
+    --ground:#14100C; --panel:#221A13; --lift:#33251A;
+    --ink:#F0E4D2; --dim:#A38A6A; --line:rgba(233,201,150,.13);
+    --gold:#E0B061; --gold2:#B0763C; --copper:#E8A48F; --sage:#9DBA88;
+    --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+    --font-d:"Didot","Bodoni 72",Georgia,serif;
+    --font-u:"Avenir Next","Avenir","Helvetica Neue",system-ui,sans-serif;
+    --font-m:ui-monospace,"SF Mono",Menlo,monospace;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; height:100%; overscroll-behavior:none}
+  body{
+    background:var(--ground); color:var(--ink); font-family:var(--font-u);
+    font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased;
+    -webkit-user-select:none; user-select:none;
+  }
+  body::before{content:""; position:fixed; inset:0; pointer-events:none;
+    background:radial-gradient(120% 50% at 50% -8%, rgba(224,176,97,.14), transparent 60%)}
+
+  .screen{display:none; position:fixed; inset:0; overflow-y:auto;
+    padding:calc(var(--sat) + 18px) 18px calc(var(--sab) + 92px)}
+  .screen.on{display:block}
+  .slabel{font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:var(--dim); font-weight:600}
+  h1{font-family:var(--font-d); font-weight:400; font-size:30px; line-height:1.08; margin:2px 0 14px}
+
+  .card{background:var(--panel); border:1px solid var(--line); border-radius:18px; padding:15px; margin-bottom:10px}
+  .card.lift{background:linear-gradient(150deg,var(--lift),var(--panel))}
+  .row{display:flex; align-items:center; gap:11px}
+  .spread{display:flex; align-items:center; justify-content:space-between; gap:10px}
+  .muted{color:var(--dim)}
+  .tiny{font-size:12px}
+  .num{font-family:var(--font-m); font-variant-numeric:tabular-nums}
+  .b{font-weight:600}
+
+  .btn{display:block; width:100%; text-align:center; background:linear-gradient(160deg,var(--gold),var(--gold2));
+    color:#251708; border:0; border-radius:999px; padding:13px 18px; font:inherit; font-size:15px;
+    font-weight:700; margin-top:12px; cursor:pointer}
+  .btn:active{opacity:.75}
+  .btn.ghost{background:transparent; color:var(--gold); border:1px solid rgba(224,176,97,.4);
+    font-weight:600; width:auto; margin:0; padding:9px 18px; font-size:13px}
+  .pill{display:inline-block; font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    padding:5px 11px; border-radius:999px; border:1px solid var(--line); color:#D9BE93}
+  .pill.live{border-color:rgba(232,164,143,.5); color:var(--copper)}
+  .pill.ok{border-color:rgba(157,186,136,.45); color:var(--sage)}
+  .pill.sel{border-color:rgba(224,176,97,.7); color:var(--gold)}
+
+  .av{width:42px; height:42px; border-radius:50%; flex:0 0 auto;
+    background:linear-gradient(150deg,#C08A46,#6E4622); display:grid; place-items:center;
+    font-family:var(--font-d); font-size:17px; color:#2B1A0C}
+  .av.sm{width:30px; height:30px; font-size:13px}
+
+  .ring{width:84px; height:84px; border-radius:50%; flex:0 0 auto; display:grid; place-items:center;
+    background:conic-gradient(var(--gold) calc(var(--v)*1%), rgba(233,201,150,.14) 0); position:relative}
+  .ring::after{content:""; position:absolute; inset:8px; border-radius:50%; background:var(--panel)}
+  .ring b{position:relative; font-family:var(--font-d); font-weight:400; font-size:27px}
+
+  /* tab bar */
+  nav{position:fixed; left:0; right:0; bottom:0; z-index:40; display:flex; justify-content:space-around;
+    padding:10px 6px calc(var(--sab) + 8px); background:rgba(24,18,9,.94);
+    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px); border-top:1px solid var(--line)}
+  nav button{background:none; border:0; color:#7C6647; font:inherit; font-size:10px; letter-spacing:.08em;
+    text-transform:uppercase; display:flex; flex-direction:column; align-items:center; gap:5px; cursor:pointer; padding:2px 10px}
+  nav button.on{color:var(--gold)}
+  nav i{width:19px; height:19px; border:1.5px solid currentColor; border-radius:5px; font-style:normal}
+  nav i.round{border-radius:50%}
+  nav i.drop{border-radius:50% 50% 50% 0; transform:rotate(-45deg)}
+  nav i.bars{border:0; background:
+      linear-gradient(currentColor,currentColor) 1px 100%/4px 60% no-repeat,
+      linear-gradient(currentColor,currentColor) 8px 100%/4px 100% no-repeat,
+      linear-gradient(currentColor,currentColor) 15px 100%/4px 40% no-repeat}
+
+  /* scan */
+  #scan{padding-left:0; padding-right:0}
+  .vf{position:relative; height:62vh; margin:0 0 14px;
+    background:radial-gradient(60% 44% at 50% 40%, #4A3826, transparent 74%)}
+  .oval{position:absolute; top:12%; left:50%; transform:translateX(-50%); width:56vw; max-width:250px;
+    aspect-ratio:.76; border:1.5px dashed rgba(224,176,97,.7); border-radius:50%}
+  .cnr{position:absolute; width:22px; height:22px; border:2px solid var(--gold)}
+  .scanline{position:absolute; left:14%; right:14%; height:2px;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent); top:20%}
+  @media (prefers-reduced-motion:no-preference){
+    .scanline{animation:sw 3.2s ease-in-out infinite}
+    @keyframes sw{0%,100%{top:16%}50%{top:56%}}
+  }
+  .shutter{width:66px; height:66px; border-radius:50%; border:3px solid rgba(240,228,210,.9);
+    background:transparent; position:relative; display:block; margin:16px auto 0; cursor:pointer}
+  .shutter::after{content:""; position:absolute; inset:5px; border-radius:50%;
+    background:linear-gradient(160deg,var(--gold),var(--gold2))}
+  .shutter:active{transform:scale(.94)}
+  .dots{display:flex; justify-content:center; gap:8px; margin-top:14px}
+  .dots i{width:7px; height:7px; border-radius:50%; background:rgba(240,228,210,.28)}
+  .dots i.on{background:var(--gold)}
+  .bar{height:5px; border-radius:3px; background:rgba(233,201,150,.14); overflow:hidden; margin-top:8px}
+  .bar i{display:block; height:100%; width:86%; background:linear-gradient(90deg,var(--gold2),var(--gold))}
+
+  /* chips + segment */
+  .chips{display:flex; gap:8px; overflow-x:auto; padding-bottom:6px; margin-bottom:10px; scrollbar-width:none}
+  .seg{display:flex; gap:4px; background:#1C150E; border:1px solid var(--line); border-radius:999px;
+    padding:3px; margin-bottom:8px}
+  .seg button{flex:1; border:0; background:none; color:var(--dim); font:inherit; font-size:13px;
+    letter-spacing:.06em; padding:8px 0; border-radius:999px; cursor:pointer}
+  .seg button.on{background:linear-gradient(160deg,var(--gold),var(--gold2)); color:#251708; font-weight:700}
+  .steps{list-style:none; margin:0; padding:0}
+  .steps li{display:flex; gap:13px; padding:13px 2px; border-bottom:1px solid var(--line)}
+  .steps li:last-child{border-bottom:0}
+  .steps .n{font-family:var(--font-m); font-size:12px; color:var(--dim); padding-top:2px}
+
+  /* session overlay */
+  #session{display:none; position:fixed; inset:0; z-index:60;
+    background:linear-gradient(170deg,#3A2A1B,#15100A); padding:calc(var(--sat) + 14px) 16px calc(var(--sab) + 16px)}
+  #session.on{display:block}
+  .pip{position:absolute; top:calc(var(--sat) + 52px); right:16px; width:76px; height:102px; border-radius:14px;
+    border:1px solid rgba(233,201,150,.25); background:linear-gradient(160deg,#57402B,#241A12)}
+  .pip span{position:absolute; bottom:6px; left:0; right:0; text-align:center; font-size:10px; color:var(--dim)}
+  .mark{position:absolute; width:30px; height:30px; border-radius:50%; border:1.5px solid var(--copper);
+    box-shadow:0 0 0 5px rgba(232,164,143,.12); opacity:0; transition:opacity .5s, transform .5s; transform:scale(.5)}
+  .mark.on{opacity:1; transform:scale(1)}
+  .callui{position:absolute; left:16px; right:16px; bottom:calc(var(--sab) + 84px)}
+  .callbar{position:absolute; left:0; right:0; bottom:calc(var(--sab) + 18px); display:flex; justify-content:center; gap:16px}
+  .cbtn{width:52px; height:52px; border-radius:50%; border:0; background:rgba(240,228,210,.14);
+    color:var(--ink); font-size:17px; cursor:pointer; display:grid; place-items:center}
+  .cbtn.end{background:#B0523B}
+
+  /* sheet + toast */
+  #sheet{position:fixed; left:0; right:0; bottom:0; z-index:70; background:var(--ground);
+    border-radius:22px 22px 0 0; border-top:1px solid var(--line); padding:22px 22px calc(var(--sab) + 22px);
+    transform:translateY(105%); transition:transform .32s cubic-bezier(.3,.9,.3,1)}
+  #sheet.on{transform:none}
+  #toast{position:fixed; left:18px; right:18px; top:calc(var(--sat) + 14px); z-index:80;
+    background:var(--lift); border:1px solid rgba(224,176,97,.4); border-radius:14px; padding:13px 16px;
+    font-size:13px; opacity:0; pointer-events:none; transition:opacity .3s}
+  #toast.on{opacity:1}
+  @media (prefers-reduced-motion:reduce){ #sheet{transition:none} .mark{transition:none} }
+</style>
+</head>
+<body>
+
+<!-- TODAY -->
+<main id="today" class="screen on">
+  <p class="slabel" id="dateline">Today</p>
+  <h1 id="greet">Good evening, Maya</h1>
+
+  <div class="card lift">
+    <div class="spread">
+      <span class="pill live">In 20 min</span>
+      <span class="tiny muted num">45 min · $85</span>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <div class="av">R</div>
+      <div>
+        <div class="b">Deep Cleanse Consult</div>
+        <div class="tiny muted">Renée A., LE · barrier repair</div>
+      </div>
+    </div>
+    <button class="btn" onclick="openSession()">Join session</button>
+  </div>
+
+  <div class="card">
+    <div class="row" style="gap:15px">
+      <div class="ring" id="ring" style="--v:78"><b id="ringv">78</b></div>
+      <div>
+        <div class="slabel">Skin index</div>
+        <div class="b" id="ringhead" style="margin-top:2px">Barrier recovering</div>
+        <div class="tiny muted" id="ringsub" style="margin-top:3px">Redness down 11% since 14 Feb.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="nudge">
+    <div class="spread">
+      <div>
+        <div class="b">Weekly scan due</div>
+        <div class="tiny muted">About 40 seconds</div>
+      </div>
+      <button class="btn ghost" onclick="go('scan')">Scan</button>
+    </div>
+  </div>
+
+  <p class="tiny muted" style="margin-top:14px">Concept build — sample data, nothing leaves your phone.</p>
+</main>
+
+<!-- SCAN -->
+<main id="scan" class="screen">
+  <div style="text-align:center; padding:0 18px">
+    <p class="slabel" id="angleno">Angle 1 of 3</p>
+    <h1 style="margin-bottom:4px" id="prompt">Look straight ahead</h1>
+  </div>
+  <div class="vf">
+    <div class="oval"></div>
+    <div class="scanline"></div>
+    <div class="cnr" style="top:8%; left:12%; border-right:0; border-bottom:0"></div>
+    <div class="cnr" style="top:8%; right:12%; border-left:0; border-bottom:0"></div>
+    <div class="cnr" style="bottom:8%; left:12%; border-right:0; border-top:0"></div>
+    <div class="cnr" style="bottom:8%; right:12%; border-left:0; border-top:0"></div>
+  </div>
+  <div style="padding:0 18px">
+    <div class="card" style="background:rgba(34,26,19,.8)">
+      <div class="spread"><span class="tiny b">Lighting</span><span class="pill ok">Normalized</span></div>
+      <div class="bar"><i></i></div>
+      <p class="tiny muted" style="margin:8px 0 0">Warm indoor light detected — corrected to match your last scan.</p>
+    </div>
+    <div class="dots"><i class="on" id="d0"></i><i id="d1"></i><i id="d2"></i></div>
+    <button class="shutter" aria-label="Capture" onclick="capture()"></button>
+  </div>
+</main>
+
+<!-- BOOK -->
+<main id="book" class="screen">
+  <p class="slabel">Licensed · verified · in your state</p>
+  <h1>Book a pro</h1>
+  <div class="chips" id="chips"></div>
+  <div id="prolist"></div>
+</main>
+
+<!-- REGIMEN -->
+<main id="regimen" class="screen">
+  <p class="slabel">Prescribed 12 Mar by Renée A.</p>
+  <h1>Your regimen</h1>
+  <div class="seg" id="slots"></div>
+  <ol class="steps" id="steplist"></ol>
+  <div class="card" style="margin-top:12px">
+    <div class="spread">
+      <div>
+        <div class="b">Barrier cream: 9 days left</div>
+        <div class="tiny muted">Based on your logged use</div>
+      </div>
+      <button class="btn ghost" onclick="toast('Reorder placed — sample data, nothing was charged.')">Reorder</button>
+    </div>
+  </div>
+</main>
+
+<!-- SESSION -->
+<div id="session">
+  <span class="pill live">● Live · <span class="num" id="clock">12:04</span></span>
+  <div class="pip"><span>You</span></div>
+  <div class="mark" style="top:32%; left:30%"></div>
+  <div class="mark" style="top:41%; left:58%"></div>
+  <div class="mark" style="top:53%; left:44%"></div>
+  <div class="callui">
+    <div class="card" style="background:rgba(20,15,10,.82); margin:0">
+      <div class="row">
+        <div class="av sm">R</div>
+        <span class="tiny">Renée marked <b id="markn" style="color:var(--gold)">0 areas</b> on your scan</span>
+      </div>
+      <p class="tiny muted" id="marknote" style="margin:8px 0 0">Connecting…</p>
+      <button class="btn ghost" id="savebtn" style="width:100%; margin-top:11px" onclick="saveMap()">Save to my map</button>
+    </div>
+  </div>
+  <div class="callbar">
+    <button class="cbtn" id="micbtn" aria-label="Mute" onclick="this.style.opacity=this.style.opacity==='0.5'?'1':'0.5'">🎙</button>
+    <button class="cbtn end" aria-label="End call" onclick="endSession()">✕</button>
+  </div>
+</div>
+
+<!-- SCAN RESULT SHEET -->
+<div id="sheet">
+  <p class="slabel">Scan complete</p>
+  <h1 style="margin-bottom:10px">Barrier holding</h1>
+  <div class="row" style="gap:15px">
+    <div class="ring" style="--v:81"><b>81</b></div>
+    <p class="muted" style="font-size:14px">Redness down 14% since your last capture. Your esthetician sees this before the call starts.</p>
+  </div>
+  <button class="btn" onclick="closeSheet()">Done</button>
+</div>
+
+<div id="toast" role="status"></div>
+
+<nav>
+  <button class="on" data-t="today" onclick="go('today')"><i class="round"></i>Today</button>
+  <button data-t="scan" onclick="go('scan')"><i></i>Scan</button>
+  <button data-t="book" onclick="go('book')"><i class="drop"></i>Book</button>
+  <button data-t="regimen" onclick="go('regimen')"><i class="bars"></i>Regimen</button>
+</nav>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---- greeting ---- */
+  var h = new Date().getHours();
+  document.getElementById('greet').textContent =
+    (h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening') + ', Maya';
+  document.getElementById('dateline').textContent =
+    new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  /* ---- tabs ---- */
+  window.go = function (id) {
+    document.querySelectorAll('.screen').forEach(function (s) { s.classList.toggle('on', s.id === id); });
+    document.querySelectorAll('nav button').forEach(function (b) { b.classList.toggle('on', b.dataset.t === id); });
+    window.scrollTo(0, 0);
+  };
+
+  /* ---- toast ---- */
+  var toastT;
+  window.toast = function (msg) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.classList.add('on');
+    clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('on'); }, 2600);
+  };
+
+  /* ---- scan flow ---- */
+  var prompts = ['Look straight ahead', 'Turn slightly left', 'Turn slightly right'];
+  var angle = 0;
+  window.capture = function () {
+    if (angle < 2) {
+      document.getElementById('d' + angle).classList.add('on');
+      angle++;
+      document.getElementById('d' + angle).classList.add('on');
+      document.getElementById('angleno').textContent = 'Angle ' + (angle + 1) + ' of 3';
+      document.getElementById('prompt').textContent = prompts[angle];
+    } else {
+      document.getElementById('sheet').classList.add('on');
+      document.getElementById('ring').style.setProperty('--v', 81);
+      document.getElementById('ringv').textContent = '81';
+      document.getElementById('ringhead').textContent = 'Barrier holding';
+      document.getElementById('ringsub').textContent = 'Redness down 14% since your last capture.';
+      var n = document.getElementById('nudge'); if (n) n.remove();
+    }
+  };
+  window.closeSheet = function () {
+    document.getElementById('sheet').classList.remove('on');
+    angle = 0;
+    for (var i = 0; i < 3; i++) document.getElementById('d' + i).classList.toggle('on', i === 0);
+    document.getElementById('angleno').textContent = 'Angle 1 of 3';
+    document.getElementById('prompt').textContent = prompts[0];
+    go('today');
+  };
+
+  /* ---- book ---- */
+  var pros = [
+    { i: 'R', n: 'Renée A., LE', s: 'Acne & barrier repair · 9 yrs', r: '4.9', t: 'Tonight 7:30 · 45 min', p: 85 },
+    { i: 'A', n: 'Aisha D., LE', s: 'Hyperpigmentation · melanin-rich skin', r: '4.8', t: 'Thu 6:00 · 30 min', p: 60 },
+    { i: 'J', n: 'Joelle M., LE', s: 'Rosacea · sensitized skin', r: '5.0', t: 'Fri 11:15 · 45 min', p: 85 }
+  ];
+  var cats = ['Acne', 'Pigment', 'Rosacea', 'Anti-aging'];
+  var chips = document.getElementById('chips');
+  cats.forEach(function (c, ix) {
+    var b = document.createElement('button');
+    b.className = 'pill' + (ix === 0 ? ' sel' : '');
+    b.style.cssText = 'background:none;cursor:pointer;font-family:inherit';
+    b.textContent = c;
+    b.onclick = function () {
+      chips.querySelectorAll('.pill').forEach(function (p) { p.classList.remove('sel'); });
+      b.classList.add('sel');
+    };
+    chips.appendChild(b);
+  });
+  var list = document.getElementById('prolist');
+  pros.forEach(function (p, ix) {
+    var d = document.createElement('div');
+    d.className = 'card' + (ix === 0 ? ' lift' : '');
+    d.innerHTML =
+      '<div class="row"><div class="av">' + p.i + '</div><div style="flex:1">' +
+      '<div class="spread"><span class="b">' + p.n + '</span><span class="tiny num">★ ' + p.r + '</span></div>' +
+      '<div class="tiny muted">' + p.s + '</div></div></div>' +
+      '<div class="spread" style="margin-top:12px"><span class="tiny muted num">' + p.t + '</span></div>';
+    var btn = document.createElement('button');
+    btn.className = 'btn ghost'; btn.textContent = '$' + p.p + ' · Book';
+    btn.onclick = function () { window.toast(p.n + ' will confirm your slot — sample data, nothing booked.'); };
+    d.lastElementChild.appendChild(btn);
+    list.appendChild(d);
+  });
+
+  /* ---- regimen ---- */
+  var regimen = {
+    Morning: [
+      ['Cream cleanser', 'Lukewarm water, 30 seconds'],
+      ['Azelaic acid 10%', 'Jaw and chin only — Tue & Fri'],
+      ['Barrier cream', 'On damp skin, don’t skip the neck'],
+      ['SPF 50', 'Two fingers, reapply at 2pm']
+    ],
+    Evening: [
+      ['Double cleanse', 'Oil first on makeup days'],
+      ['Adapalene 0.1%', 'Pea-sized — Mon, Wed, Sat'],
+      ['Barrier cream', 'Buffer over the retinoid, generous']
+    ],
+    Weekly: [
+      ['Enzyme mask', 'Sunday only, 8 minutes, rinse warm'],
+      ['Pillowcase change', 'Twice weekly — friction is the jaw story']
+    ]
+  };
+  var slots = document.getElementById('slots');
+  var steplist = document.getElementById('steplist');
+  function renderSteps(slot) {
+    steplist.innerHTML = regimen[slot].map(function (s, ix) {
+      return '<li><span class="n">0' + (ix + 1) + '</span><span><span class="b">' + s[0] +
+             '</span><br><span class="tiny muted">' + s[1] + '</span></span></li>';
+    }).join('');
+  }
+  Object.keys(regimen).forEach(function (slot, ix) {
+    var b = document.createElement('button');
+    b.textContent = slot;
+    if (ix === 0) b.className = 'on';
+    b.onclick = function () {
+      slots.querySelectorAll('button').forEach(function (x) { x.className = ''; });
+      b.className = 'on';
+      renderSteps(slot);
+    };
+    slots.appendChild(b);
+  });
+  renderSteps('Morning');
+
+  /* ---- session ---- */
+  var notes = [
+    '“Congestion along the jaw is friction, not diet.” — Left jaw',
+    '“Post-inflammatory mark, fading on schedule.” — Right cheek',
+    '“Dropping actives to twice a week.” — Chin'
+  ];
+  var secs, timer, shown;
+  window.openSession = function () {
+    secs = 724; shown = 0;
+    document.getElementById('session').classList.add('on');
+    document.getElementById('savebtn').textContent = 'Save to my map';
+    document.getElementById('savebtn').disabled = false;
+    document.querySelectorAll('.mark').forEach(function (m) { m.classList.remove('on'); });
+    document.getElementById('markn').textContent = '0 areas';
+    document.getElementById('marknote').textContent = 'Connecting…';
+    timer = setInterval(function () {
+      secs++;
+      document.getElementById('clock').textContent =
+        Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0');
+      if (shown < 3 && secs % 3 === 0) {
+        document.querySelectorAll('.mark')[shown].classList.add('on');
+        shown++;
+        document.getElementById('markn').textContent = shown + ' area' + (shown === 1 ? '' : 's');
+        document.getElementById('marknote').textContent = notes[shown - 1];
+      }
+    }, 1000);
+  };
+  window.saveMap = function () {
+    var b = document.getElementById('savebtn');
+    b.textContent = 'Saved to your map'; b.disabled = true;
+  };
+  window.endSession = function () {
+    clearInterval(timer);
+    document.getElementById('session').classList.remove('on');
+  };
+})();
+</script>
+</body>
+</html>
