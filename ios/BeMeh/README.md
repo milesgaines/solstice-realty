@@ -90,3 +90,35 @@ target's build settings (1 → 2 → 3); `MARKETING_VERSION` is the user-visible
 - **Face imagery is health-adjacent.** Before any of it leaves the device you
   need encryption at rest, per-session access grants, real deletion, and a
   privacy nutrition label that matches. App Review will ask.
+
+## CI to TestFlight (no Mac needed)
+
+`.github/workflows/testflight.yml` builds on GitHub's cloud Mac runners and
+uploads to TestFlight. Two jobs:
+
+- **Compile check** — runs on every push to `ios/BeMeh/**`, no secrets needed.
+- **Archive & upload** — manual run (*Actions → iOS — build & TestFlight →
+  Run workflow*), needs the four secrets below.
+
+### One-time unlocks
+
+1. **GitHub macOS runners.** New personal accounts must verify billing before
+   macOS jobs will start (they fail in seconds with no runner assigned —
+   exactly what run #1 and #2 did). Fix: GitHub → **Settings → Billing and
+   plans** → add/verify a payment method. Public-repo minutes stay free.
+2. **Apple secrets.** In App Store Connect → *Users and Access* →
+   *Integrations* → *App Store Connect API* → create a **Team key** with
+   **App Manager** role, then add repo secrets (GitHub → repo → Settings →
+   Secrets and variables → Actions):
+   - `APPSTORE_ISSUER_ID` — Issuer ID shown above the key list
+   - `APPSTORE_KEY_ID` — the key's ID
+   - `APPSTORE_P8` — full contents of the downloaded `.p8` file
+   - `APPLE_TEAM_ID` — 10-char Team ID (Developer account → Membership)
+3. **App record.** App Store Connect → My Apps → **+** → New App, with the
+   same bundle ID the workflow uses (`com.bemehesthetics.bemeh`, or set repo
+   variable `BEMEH_BUNDLE_ID` to your own).
+
+Then dispatch the workflow; build number = run number. Alternative with zero
+GitHub setup: **Xcode Cloud** — App Store Connect → Xcode Cloud → connect this
+GitHub repo, pick the shared `BeMeh` scheme, and it builds + delivers to
+TestFlight on Apple's Macs.
