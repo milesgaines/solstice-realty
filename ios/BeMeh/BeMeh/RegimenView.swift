@@ -10,6 +10,8 @@ import SwiftUI
 struct RegimenView: View {
     @EnvironmentObject private var state: AppState
 
+    @State private var reordered = false
+
     private var steps: [RegimenStep] {
         state.regimen.filter { $0.slot == state.regimenSlot }
     }
@@ -71,16 +73,20 @@ struct RegimenView: View {
         Card {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Barrier cream: 9 days left")
+                    Text(reordered ? "Barrier cream on the way" : "Barrier cream: 9 days left")
                         .font(.label(15))
                         .foregroundStyle(Palette.ink)
-                    Text("Based on your logged use")
+                    Text(reordered ? "Arrives in 2–3 days" : "Based on your logged use")
                         .font(.footnote)
                         .foregroundStyle(Palette.inkDim)
                 }
                 Spacer()
-                Button("Reorder") { }
-                    .buttonStyle(GoldButtonStyle())
+                Button(reordered ? "Ordered" : "Reorder") {
+                    Haptic.success()
+                    withAnimation(.easeOut(duration: 0.25)) { reordered = true }
+                }
+                .buttonStyle(GoldButtonStyle())
+                .disabled(reordered)
             }
         }
     }

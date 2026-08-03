@@ -2,15 +2,17 @@
 //  ScanView.swift
 //  BeMeh
 //
-//  Guided three-angle capture. This build simulates the camera so the flow runs
-//  on the simulator and needs no permissions; the real app swaps the viewfinder
-//  for an AVCaptureVideoPreviewLayer and reads angles from Vision landmarks.
+//  Guided three-angle capture over the real front camera (see CameraView.swift).
+//  If the camera is unavailable or permission is denied, the guide overlay still
+//  works so the flow is never a dead end.
 //
 
 import SwiftUI
+import UIKit
 
 struct ScanView: View {
     @EnvironmentObject private var state: AppState
+    @StateObject private var camera = CameraController()
     @State private var angle = 0
     @State private var finished = false
     @State private var sweep = false
@@ -32,6 +34,7 @@ struct ScanView: View {
 
                 Spacer()
 
+                if camera.status == .denied { permissionCard.padding(.horizontal, 18) }
                 lightingCard
                     .padding(.horizontal, 18)
 
@@ -43,7 +46,8 @@ struct ScanView: View {
                     .padding(.bottom, 12)
             }
         }
-        .onAppear { sweep = true }
+        .onAppear { sweep = true; camera.start() }
+        .onDisappear { camera.stop() }
         .sheet(isPresented: $finished, onDismiss: reset) {
             ScanResultSheet()
                 .presentationDetents([.medium])
@@ -53,11 +57,18 @@ struct ScanView: View {
 
     private var viewfinder: some View {
         ZStack {
-            RadialGradient(
-                colors: [Color(red: 0.29, green: 0.22, blue: 0.15), Palette.ground],
-                center: .init(x: 0.5, y: 0.4), startRadius: 20, endRadius: 380
-            )
-            .ignoresSafeArea()
+            // Live camera when available, warm gradient otherwise.
+            if camera.status == .running {
+                CameraPreview(session: camera.session)
+                    .ignoresSafeArea()
+                    .overlay(Color.black.opacity(0.15).ignoresSafeArea())
+            } else {
+                RadialGradient(
+                    colors: [Color(red: 0.29, green: 0.22, blue: 0.15), Palette.ground],
+                    center: .init(x: 0.5, y: 0.4), startRadius: 20, endRadius: 380
+                )
+                .ignoresSafeArea()
+            }
 
             GeometryReader { geo in
                 let w = geo.size.width * 0.58
@@ -85,6 +96,26 @@ struct ScanView: View {
                     .stroke(Palette.gold, lineWidth: 2)
                     .frame(width: geo.size.width * 0.74, height: h * 1.1)
                     .position(x: geo.size.width / 2, y: geo.size.height * 0.42)
+            }
+        }
+    }
+
+    private var permissionCard: some View {
+        Card {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Camera access is off")
+                    .font(.label(14))
+                    .foregroundStyle(Palette.ink)
+                Text("Turn it on in Settings › BeMeh to scan with the live camera. You can still walk the guided steps below.")
+                    .font(.footnote)
+                    .foregroundStyle(Palette.inkDim)
+                Button("Open Settings") {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                .buttonStyle(GhostButtonStyle())
+                .padding(.top, 2)
             }
         }
     }
@@ -133,15 +164,18 @@ struct ScanView: View {
 
     private func capture() {
         guard !finished else { return }
-        withAnimation(.easeOut(duration: 0.25)) {
-            angle += 1
-        }
-        if angle >= 3 {
-            Haptic.success()
-            state.completeScan()
-            finished = true
-        } else {
-            Haptic.soft()
+        // Take the real photo (if the camera is live), then advance the flow.
+        camera.capture {
+            withAnimation(.easeOut(duration: 0.25)) {
+                angle += 1
+            }
+            if angle >= 3 {
+                Haptic.success()
+                state.completeScan()
+                finished = true
+            } else {
+                Haptic.soft()
+            }
         }
     }
 
