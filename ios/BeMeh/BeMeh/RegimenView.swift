@@ -16,7 +16,7 @@ struct RegimenView: View {
 
     var body: some View {
         ZStack {
-            GroundBackground()
+            AtmosphereBackground()
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 14) {

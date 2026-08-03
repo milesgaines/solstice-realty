@@ -137,8 +137,11 @@ struct ScanView: View {
             angle += 1
         }
         if angle >= 3 {
+            Haptic.success()
             state.completeScan()
             finished = true
+        } else {
+            Haptic.soft()
         }
     }
 

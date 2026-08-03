@@ -27,13 +27,17 @@ struct TodayView: View {
 
     var body: some View {
         ZStack {
-            GroundBackground()
+            AtmosphereBackground()
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
-                    ScreenHeader(eyebrow: today,
-                                 title: "\(greeting), \(state.clientFirstName)")
-                        .padding(.bottom, 4)
+                    HStack(alignment: .center) {
+                        ScreenHeader(eyebrow: today,
+                                     title: "\(greeting),\n\(state.clientFirstName)")
+                        Spacer()
+                        Emblem(size: 72)
+                    }
+                    .padding(.bottom, 6)
 
                     nextAppointment
                     skinIndex
@@ -78,6 +82,7 @@ struct TodayView: View {
                 }
 
                 Button("Join session") {
+                    Haptic.success()
                     state.isInSession = true
                 }
                 .buttonStyle(GoldButtonStyle(wide: true))
@@ -115,7 +120,7 @@ struct TodayView: View {
                         .foregroundStyle(Palette.inkDim)
                 }
                 Spacer()
-                Button("Scan") { state.tab = .scan }
+                Button("Scan") { Haptic.tap(); state.tab = .scan }
                     .buttonStyle(GhostButtonStyle())
             }
         }

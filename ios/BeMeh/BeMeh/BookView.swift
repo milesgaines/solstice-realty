@@ -16,7 +16,7 @@ struct BookView: View {
 
     var body: some View {
         ZStack {
-            GroundBackground()
+            AtmosphereBackground()
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 12) {
@@ -82,7 +82,7 @@ struct BookView: View {
                         .font(.data(11))
                         .foregroundStyle(Palette.inkDim)
                     Spacer()
-                    Button("$\(pro.price)") { booked = pro }
+                    Button("$\(pro.price)") { Haptic.success(); booked = pro }
                         .buttonStyle(GoldButtonStyle())
                 }
             }
