@@ -19,6 +19,18 @@ struct RootView: View {
     }
 
     var body: some View {
+        Group {
+            if state.isSignedUp {
+                mainTabs
+            } else {
+                SignUpView()
+            }
+        }
+        .environmentObject(state)
+        .preferredColorScheme(.dark)
+    }
+
+    private var mainTabs: some View {
         TabView(selection: $state.tab) {
             TodayView()
                 .tabItem { Label("Today", systemImage: "sun.horizon") }
@@ -37,8 +49,6 @@ struct RootView: View {
                 .tag(Tab.regimen)
         }
         .tint(Palette.gold)
-        .environmentObject(state)
-        .preferredColorScheme(.dark)
     }
 }
 

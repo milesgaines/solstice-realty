@@ -17,7 +17,9 @@ final class AppState: ObservableObject {
     @Published var savedMap: Bool = false
     @Published var regimenSlot: RegimenSlot = .morning
 
-    let clientFirstName = "Maya"
+    // Onboarding: the app opens on the sign-up gate until an account is created.
+    @Published var isSignedUp: Bool = false
+    @Published var clientFirstName: String = "there"
     let pros: [Esthetician]
     let upcoming: Appointment
     let regimen: [RegimenStep]

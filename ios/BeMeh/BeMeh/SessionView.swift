@@ -2,9 +2,10 @@
 //  SessionView.swift
 //  BeMeh
 //
-//  The live consult. Your pro annotates your own scan mid-call and you keep the
-//  marked-up map. Video here is a placeholder stage; the real build renders a
-//  LiveKit track and syncs annotations over a data channel.
+//  The live consult, "Zoom-style". The self-view is a real live front-camera
+//  feed (see CameraView.swift). The remote esthetician tile is a placeholder:
+//  a true two-way call needs a media server (LiveKit/Twilio/WebRTC), which this
+//  build doesn't include — the plumbing for that lands where noted below.
 //
 
 import Combine
@@ -13,10 +14,11 @@ import SwiftUI
 struct SessionView: View {
     @EnvironmentObject private var state: AppState
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var camera = CameraController()
 
     @State private var elapsed = 724   // 12:04, so the demo opens mid-call
     @State private var revealed = 0
-    @State private var muted = false
+    @State private var cameraOn = true
 
     private let tick = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
 
@@ -26,9 +28,21 @@ struct SessionView: View {
 
     var body: some View {
         ZStack {
-            LinearGradient(colors: [Color(red: 0.23, green: 0.17, blue: 0.11), Palette.ground],
+            // Remote stage: the esthetician. Placeholder until a media server is
+            // wired in — a warm ground with the pro's monogram.
+            LinearGradient(colors: [Color(red: 0.28, green: 0.21, blue: 0.14), Palette.ground],
                            startPoint: .top, endPoint: .bottom)
                 .ignoresSafeArea()
+
+            VStack(spacing: 12) {
+                Monogram(letter: state.upcoming.pro.initial, size: 96)
+                Text(state.upcoming.pro.displayName)
+                    .font(.display(24))
+                    .foregroundStyle(Palette.ink)
+                Text("Connected · audio live")
+                    .font(.footnote)
+                    .foregroundStyle(Palette.inkDim)
+            }
 
             GeometryReader { geo in
                 ForEach(Array(state.sessionNotes.enumerated()), id: \.element.id) { i, note in
@@ -47,19 +61,7 @@ struct SessionView: View {
                 HStack(alignment: .top) {
                     Pill(text: "Live · \(clock)", tone: .live)
                     Spacer()
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .fill(Palette.liftFill)
-                        .frame(width: 78, height: 104)
-                        .overlay {
-                            RoundedRectangle(cornerRadius: 14, style: .continuous)
-                                .strokeBorder(Palette.hairline, lineWidth: 1)
-                        }
-                        .overlay(alignment: .bottom) {
-                            Text("You")
-                                .font(.label(9))
-                                .foregroundStyle(Palette.inkDim)
-                                .padding(.bottom, 6)
-                        }
+                    selfView
                 }
                 .padding(.horizontal, 18)
                 .padding(.top, 8)
@@ -75,6 +77,8 @@ struct SessionView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .onAppear { camera.start() }
+        .onDisappear { camera.stop() }
         .onReceive(tick) { _ in
             elapsed += 1
             if revealed < state.sessionNotes.count && elapsed % 3 == 0 {
@@ -83,6 +87,32 @@ struct SessionView: View {
                 }
             }
         }
+    }
+
+    /// The live self-view tile — real front camera when running.
+    private var selfView: some View {
+        RoundedRectangle(cornerRadius: 14, style: .continuous)
+            .fill(Palette.liftFill)
+            .frame(width: 96, height: 128)
+            .overlay {
+                if cameraOn && camera.status == .running {
+                    CameraPreview(session: camera.session)
+                        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                }
+            }
+            .overlay {
+                RoundedRectangle(cornerRadius: 14, style: .continuous)
+                    .strokeBorder(Palette.gold.opacity(0.4), lineWidth: 1)
+            }
+            .overlay(alignment: .bottom) {
+                Text(cameraOn ? "You" : "Camera off")
+                    .font(.label(9))
+                    .foregroundStyle(Palette.ink)
+                    .padding(.horizontal, 6).padding(.vertical, 2)
+                    .background(Capsule().fill(.black.opacity(0.4)))
+                    .padding(.bottom, 6)
+            }
+            .shadow(color: .black.opacity(0.4), radius: 8, y: 4)
     }
 
     /// "Renée marked 3 areas on your scan", with the count struck in gold.
@@ -124,14 +154,23 @@ struct SessionView: View {
         .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
     }
 
+    @State private var muted = false
+
     private var controls: some View {
         HStack(spacing: 16) {
             circleButton(system: muted ? "mic.slash.fill" : "mic.fill",
                          label: muted ? "Unmute" : "Mute") {
-                muted.toggle()
+                Haptic.tap(); muted.toggle()
             }
-            circleButton(system: "video.fill", label: "Camera") { }
+            circleButton(system: cameraOn ? "video.fill" : "video.slash.fill",
+                         label: cameraOn ? "Turn camera off" : "Turn camera on") {
+                Haptic.tap()
+                cameraOn.toggle()
+                if cameraOn { camera.start() } else { camera.stop() }
+            }
             circleButton(system: "xmark", label: "End call", destructive: true) {
+                Haptic.soft()
+                camera.stop()
                 state.isInSession = false
                 dismiss()
             }

@@ -10,17 +10,20 @@ import SwiftUI
 import UIKit
 
 enum Palette {
-    static let ground     = Color(red: 0.067, green: 0.051, blue: 0.036) // #110D09 deep umber
-    static let panel      = Color(red: 0.129, green: 0.098, blue: 0.070) // #211912
-    static let panelLift  = Color(red: 0.204, green: 0.149, blue: 0.102) // #34261A
-    static let ink        = Color(red: 0.957, green: 0.910, blue: 0.839) // #F4E8D6
-    static let inkDim     = Color(red: 0.663, green: 0.565, blue: 0.435) // #A9906F
-    static let gold       = Color(red: 0.894, green: 0.702, blue: 0.388) // #E4B363
-    static let goldBright = Color(red: 0.976, green: 0.859, blue: 0.616) // #F9DB9D
-    static let goldDeep   = Color(red: 0.635, green: 0.408, blue: 0.204) // #A26834
+    // Warmed toward the medallion: a soft bronze-mocha ground instead of near
+    // black, so surfaces read as lit metal that blends with the logo — without
+    // flooding the screen with gold.
+    static let ground     = Color(red: 0.145, green: 0.106, blue: 0.071) // #251B12 warm bronze-black
+    static let panel      = Color(red: 0.200, green: 0.149, blue: 0.098) // #332619 warm taupe
+    static let panelLift  = Color(red: 0.271, green: 0.204, blue: 0.133) // #453422
+    static let ink        = Color(red: 0.965, green: 0.918, blue: 0.851) // #F6EAD9
+    static let inkDim     = Color(red: 0.722, green: 0.616, blue: 0.478) // #B89D7A warmer
+    static let gold       = Color(red: 0.882, green: 0.694, blue: 0.400) // #E1B166 softened
+    static let goldBright = Color(red: 0.961, green: 0.847, blue: 0.612) // #F5D89C
+    static let goldDeep   = Color(red: 0.616, green: 0.412, blue: 0.220) // #9D6938
     static let copper     = Color(red: 0.910, green: 0.643, blue: 0.561) // #E8A48F
     static let sage       = Color(red: 0.616, green: 0.729, blue: 0.533) // #9DBA88
-    static let hairline   = Color.white.opacity(0.09)
+    static let hairline   = Color(red: 1, green: 0.93, blue: 0.82).opacity(0.10)
 
     /// The struck-metal fill used on the wordmark and primary accents.
     static let metal = LinearGradient(
@@ -52,17 +55,23 @@ struct AtmosphereBackground: View {
     var body: some View {
         ZStack {
             Palette.ground
+            // Warm bloom from the top, echoing the logo's lit gold field.
             RadialGradient(
-                colors: [Palette.gold.opacity(0.22), Palette.goldDeep.opacity(0.05), .clear],
-                center: .init(x: 0.5, y: 0.02), startRadius: 0, endRadius: 520
+                colors: [Palette.gold.opacity(0.26), Palette.goldDeep.opacity(0.10), .clear],
+                center: .init(x: 0.5, y: 0.0), startRadius: 0, endRadius: 560
+            )
+            // A second, lower copper glow so the whole field feels metallic, not flat.
+            RadialGradient(
+                colors: [Palette.copper.opacity(0.10), .clear],
+                center: .init(x: 0.2, y: 0.9), startRadius: 0, endRadius: 420
             )
             AngularGradient(
-                colors: [Palette.goldDeep.opacity(0.10), .clear, Palette.copper.opacity(0.06),
-                         .clear, Palette.goldDeep.opacity(0.10)],
-                center: .init(x: 0.5, y: 0.35)
+                colors: [Palette.goldDeep.opacity(0.08), .clear, Palette.copper.opacity(0.05),
+                         .clear, Palette.goldDeep.opacity(0.08)],
+                center: .init(x: 0.5, y: 0.4)
             )
-            .blur(radius: 60)
-            .opacity(0.5)
+            .blur(radius: 70)
+            .opacity(0.35)
         }
         .ignoresSafeArea()
     }
