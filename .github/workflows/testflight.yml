@@ -11,7 +11,7 @@ on:
 jobs:
   compile:
     name: Compile check (no signing needed)
-    runs-on: macos-15
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -34,7 +34,7 @@ jobs:
     name: Archive, sign & upload to TestFlight
     needs: compile
     if: github.event_name == 'workflow_dispatch'
-    runs-on: macos-15
+    runs-on: macos-latest
     env:
       APPSTORE_ISSUER_ID: ${{ secrets.APPSTORE_ISSUER_ID }}
       APPSTORE_KEY_ID: ${{ secrets.APPSTORE_KEY_ID }}
