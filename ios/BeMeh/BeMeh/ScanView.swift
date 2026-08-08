@@ -51,7 +51,7 @@ struct ScanView: View {
         .sheet(isPresented: $finished, onDismiss: reset) {
             ScanResultSheet()
                 .presentationDetents([.medium])
-                .presentationBackground(Palette.ground)
+                .modifier(SheetGround())
         }
     }
 
@@ -242,6 +242,19 @@ struct ScanResultSheet: View {
     }
 }
 
-#Preview {
-    ScanView().environmentObject(AppState())
+/// `presentationBackground` is iOS 16.4+. On 16.0–16.3 the sheet keeps the
+/// system material, which still reads correctly against the dark palette.
+private struct SheetGround: ViewModifier {
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 16.4, *) {
+            content.presentationBackground(Palette.ground)
+        } else {
+            content
+        }
+    }
+}
+
+struct ScanView_Previews: PreviewProvider {
+    static var previews: some View { ScanView().environmentObject(AppState()) }
 }

@@ -80,8 +80,10 @@ struct SessionView: View {
     }
 }
 
-#Preview {
-    SessionView(meeting: MeetingInfo(proInitial: "R", proDisplay: "Renée A., LE",
-                                     room: "bemeh-demo-1234"))
-        .environmentObject(AppState())
+struct SessionView_Previews: PreviewProvider {
+    static var previews: some View {
+        SessionView(meeting: MeetingInfo(proInitial: "R", proDisplay: "Renée A., LE",
+                                         room: "bemeh-demo-1234"))
+            .environmentObject(AppState())
+    }
 }

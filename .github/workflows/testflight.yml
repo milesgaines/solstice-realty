@@ -3,7 +3,9 @@ name: iOS — build & TestFlight
 on:
   workflow_dispatch:
   push:
-    branches: [claude/virtual-esthetician-app-gjdls9]
+    branches:
+      - claude/virtual-esthetician-app-gjdls9
+      - claude/onesync-ios-testflight-compat-p6jb2y
     paths:
       - "ios/BeMeh/**"
       - ".github/workflows/testflight.yml"

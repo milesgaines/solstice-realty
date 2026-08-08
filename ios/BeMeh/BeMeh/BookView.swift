@@ -99,6 +99,6 @@ struct BookView: View {
     }
 }
 
-#Preview {
-    BookView().environmentObject(AppState())
+struct BookView_Previews: PreviewProvider {
+    static var previews: some View { BookView().environmentObject(AppState()) }
 }

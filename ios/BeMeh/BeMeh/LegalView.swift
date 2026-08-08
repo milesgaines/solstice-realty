@@ -78,6 +78,6 @@ struct LegalView: View {
     }
 }
 
-#Preview {
-    LegalView()
+struct LegalView_Previews: PreviewProvider {
+    static var previews: some View { LegalView() }
 }

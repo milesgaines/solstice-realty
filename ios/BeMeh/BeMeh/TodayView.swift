@@ -126,6 +126,6 @@ struct TodayView: View {
     }
 }
 
-#Preview {
-    TodayView().environmentObject(AppState())
+struct TodayView_Previews: PreviewProvider {
+    static var previews: some View { TodayView().environmentObject(AppState()) }
 }

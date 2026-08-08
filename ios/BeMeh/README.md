@@ -71,7 +71,40 @@ from this repo.
 
 Each upload needs a unique build number. Bump `CURRENT_PROJECT_VERSION` in the
 target's build settings (1 → 2 → 3); `MARKETING_VERSION` is the user-visible
-`0.1` and only changes when you want it to.
+version (currently `0.8`) and only changes when you want it to. The CI workflow
+sets the build number to the GitHub run number, so uploads from Actions are
+always unique without editing anything.
+
+## Device compatibility
+
+`IPHONEOS_DEPLOYMENT_TARGET` is **iOS 16.0** and `TARGETED_DEVICE_FAMILY` is `1`
+(iPhone). That covers iPhone 8 and later — including phones that can't go past
+iOS 16. iPads install it in iPhone compatibility mode.
+
+Two things in the code hold that line, so check them before you raise the target
+back up:
+
+- `ScanView`'s result sheet uses `presentationBackground`, which is iOS 16.4+ —
+  it goes through the `SheetGround` modifier so 16.0–16.3 falls back to the
+  system material.
+- Previews are `PreviewProvider` structs, not the `#Preview` macro. `#Preview`
+  is iOS 17-only and will fail the build at a lower deployment target.
+
+### If TestFlight says the build is incompatible
+
+TestFlight shows that when the tester's device can't satisfy the build's
+requirements. In order of likelihood:
+
+1. **iOS version.** The device is older than the deployment target above. Check
+   *Settings → General → About → Software Version* on the device, and the
+   "Compatibility" line on the build in App Store Connect → TestFlight.
+2. **Wrong platform.** An app record created for tvOS/visionOS won't accept an
+   iOS build, and an Apple TV can't install an iOS build at all — tvOS needs its
+   own target and archive. Nothing in this repo builds for tvOS.
+3. **Device family.** A Mac with Apple silicon only shows iOS builds if "Make
+   this app available on Mac" is enabled for the app in App Store Connect.
+4. **Expired build.** TestFlight builds expire 90 days after upload; an expired
+   build is greyed out rather than installable.
 
 ## Before this becomes a real app
 

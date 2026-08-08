@@ -116,6 +116,6 @@ struct SignUpView: View {
     }
 }
 
-#Preview {
-    SignUpView().environmentObject(AppState())
+struct SignUpView_Previews: PreviewProvider {
+    static var previews: some View { SignUpView().environmentObject(AppState()) }
 }

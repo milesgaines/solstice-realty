@@ -92,6 +92,6 @@ struct RegimenView: View {
     }
 }
 
-#Preview {
-    RegimenView().environmentObject(AppState())
+struct RegimenView_Previews: PreviewProvider {
+    static var previews: some View { RegimenView().environmentObject(AppState()) }
 }
