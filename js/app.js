@@ -44,6 +44,15 @@ const fmtPrice = (n, lease) =>
      : lease ? "$" + n.toLocaleString() + "/mo"
      : n >= 1e6 ? "$" + (n / 1e6).toFixed(n % 1e6 ? 2 : 1) + "M" : "$" + n.toLocaleString();
 const fmt$ = n => "$" + Math.round(n).toLocaleString();
+/* Wraps a figure so js/odometer.js can roll it on scroll. The final text is
+   always present, so the number is right even if the odometer never runs. */
+const roll = (val, fmt, text) =>
+  (val == null || !isFinite(val)) ? text : `<span data-num="${val}" data-fmt="${fmt}">${text}</span>`;
+/* Prices that aren't a plain number ("Price Upon Request", "$8,500/mo") keep
+   their exact string — only the numeric part rolls. */
+const rollPrice = (n, lease) => !n ? fmtPrice(n, lease)
+  : lease ? roll(n, "money", "$" + n.toLocaleString()) + "/mo"
+          : roll(n, "moneyc", fmtPrice(n, lease));
 
 /* ---------- AI NATURAL-LANGUAGE SEARCH ----------
    Parses phrases like: "4 bed under 5m ocean view in malibu for lease" */
@@ -118,7 +127,8 @@ function apply() {
 
 function render() {
   const rows = apply();
-  $("#count").textContent = rows.length;
+  if (window.SIR_ODOMETER) SIR_ODOMETER.roll($("#count"), rows.length, "int", String(rows.length));
+  else $("#count").textContent = rows.length;
   const grid = $("#listings");
   if (!rows.length) {
     grid.innerHTML = state.favsOnly
@@ -128,6 +138,7 @@ function render() {
       No matches. <button class="gold" style="text-decoration:underline" onclick="clearFilters()">Reset filters</button></div>`;
   } else {
     grid.innerHTML = rows.map(cardHTML).join("");
+    if (window.SIR_ODOMETER) SIR_ODOMETER.scan(grid);
   }
   if (state.view === "map") drawMap(rows);
   syncCompareTray();
@@ -147,13 +158,13 @@ function cardHTML(l) {
       <img loading="lazy" src="${l.hero}" alt="${l.address}">
     </div>
     <div class="card-body">
-      <div class="card-price">${fmtPrice(l.price, l.lease)}</div>
+      <div class="card-price">${rollPrice(l.price, l.lease)}</div>
       <div class="card-addr">${l.address}</div>
       <div class="card-city">${l.city}${l.zip ? ", CA " + l.zip : ""} · ${l.view} view</div>
       <div class="card-tag">${l.tagline}</div>
       <div class="card-facts">
-        <span><b>${l.beds}</b> Beds</span><span><b>${l.baths}</b> Baths</span>
-        <span><b>${l.sqft ? l.sqft.toLocaleString() : '—'}</b> Sq Ft</span>
+        <span><b>${roll(l.beds, "int", String(l.beds))}</b> Beds</span><span><b>${roll(l.baths, Number.isInteger(l.baths) ? "int" : "dec1", String(l.baths))}</b> Baths</span>
+        <span><b>${l.sqft ? roll(l.sqft, "int", l.sqft.toLocaleString()) : '—'}</b> Sq Ft</span>
       </div>
       <label class="card-cmp" onclick="event.stopPropagation()">
         <input type="checkbox" ${state.compare.has(l.id) ? 'checked' : ''} onchange="toggleCompare('${l.id}')"> Compare
@@ -223,7 +234,7 @@ window.openDetail = id => {
       <div>
         <div style="display:flex;justify-content:space-between;align-items:start;gap:1rem;flex-wrap:wrap">
           <div><div class="tag">${l.status}${l.waterfront ? " · Waterfront" : ""}</div>
-            <div class="md-price">${fmtPrice(l.price, l.lease)}</div>
+            <div class="md-price">${rollPrice(l.price, l.lease)}</div>
             <div style="color:var(--gold-soft);font-size:1.05rem;margin-top:.2rem">${l.address}</div>
             <div style="color:var(--muted);font-size:.85rem">${l.city}${l.zip ? ", CA " + l.zip : ""} · ${l.community}${l.mls ? " · MLS# " + l.mls : ""}</div>
           </div>
@@ -231,11 +242,11 @@ window.openDetail = id => {
         </div>
         ${l.openHouse ? `<div style="margin-top:1rem;padding:.7rem 1rem;border:1px solid var(--gold-soft);border-radius:12px;color:var(--gold-soft);font-size:.9rem;font-weight:600">🗓 Open House · ${l.openHouse}</div>` : ""}
         <div class="md-facts">
-          <div><div class="n">${l.beds}</div><div class="l">Bedrooms</div></div>
-          <div><div class="n">${l.baths}</div><div class="l">Bathrooms</div></div>
-          <div><div class="n">${l.sqft ? l.sqft.toLocaleString() : '—'}</div><div class="l">Sq Ft</div></div>
-          <div><div class="n">${l.lot ?? '—'}</div><div class="l">Acres</div></div>
-          <div><div class="n">${l.year || '—'}</div><div class="l">Built</div></div>
+          <div><div class="n">${roll(l.beds, "int", String(l.beds))}</div><div class="l">Bedrooms</div></div>
+          <div><div class="n">${roll(l.baths, Number.isInteger(l.baths) ? "int" : "dec1", String(l.baths))}</div><div class="l">Bathrooms</div></div>
+          <div><div class="n">${l.sqft ? roll(l.sqft, "int", l.sqft.toLocaleString()) : '—'}</div><div class="l">Sq Ft</div></div>
+          <div><div class="n">${l.lot != null ? roll(l.lot, Number.isInteger(l.lot) ? "int" : "dec1", String(l.lot)) : '—'}</div><div class="l">Acres</div></div>
+          <div><div class="n">${l.year ? `<span data-num="${l.year}" data-fmt="year">${l.year}</span>` : '—'}</div><div class="l">Built</div></div>
         </div>
         <p style="color:#c9cfc8;line-height:1.7">${l.remarks || l.tagline + ". An exceptional offering presented by Donna Bohana of Solstice International Realty, with the discretion and white-glove representation her clientele expect."}</p>
         ${l.features?.length ? `<div class="md-feat">${l.features.map(x => `<span class="tag">${x}</span>`).join("")}</div>` : ""}
@@ -248,6 +259,7 @@ window.openDetail = id => {
       ${l.lease ? "" : calcHTML(l.price)}
     </div>`;
   $("#overlay").classList.add("open");
+  if (window.SIR_ODOMETER) SIR_ODOMETER.scan($("#modalContent"), true);
   if (!l.lease) initCalc(l.price);
 };
 window.SOLSTICE_fav = id => state.favs.has(id) ? "♥ Saved" : "♡ Save";
@@ -413,6 +425,7 @@ window.runValuation = async () => {
   const res = $("#valResult");
   const btn = document.querySelector('#valuation .val-input .btn');
   res.classList.remove("show"); $("#valNum").textContent = "…";
+  if ($("#valForecast")) $("#valForecast").hidden = true;
   if (btn) { btn.disabled = true; btn._t = btn.textContent; btn.textContent = "Estimating…"; }
   try {
     const d = await SIR_API.apiValuation(addr);
@@ -423,7 +436,27 @@ window.runValuation = async () => {
     $("#valComm").textContent = d.community || "your area";
     const note = $("#valSource"); if (note) note.textContent = d.label || "";
     requestAnimationFrame(() => $("#valBar").style.width = d.source === "rentcast" ? "80%" : "62%");
-    SIR_API.apiLead({ kind: "valuation", address: addr, estimate: d.value, meta: { community: d.community, source: d.source } }).catch(() => {});
+    // 12-month projection off the same live market feed the #market cards use.
+    // Hidden entirely when the feed is unreachable — never show a made-up trend.
+    const fc = $("#valForecast");
+    const p = window.SIR_PREDICT ? SIR_PREDICT.projectValue(d.value, d.community) : null;
+    if (fc) {
+      fc.hidden = !p;
+      if (p) {
+        fc.className = "val-forecast " + p.direction;
+        const O = window.SIR_ODOMETER;
+        if (O) {
+          O.roll($("#valDelta"), p.pct.toFixed(2), "pct", SIR_PREDICT.fmtPct(p.pct));
+          O.roll($("#valProj"), p.projected, "money", fmt$(p.projected));
+        } else {
+          $("#valDelta").textContent = SIR_PREDICT.fmtPct(p.pct);
+          $("#valProj").textContent = fmt$(p.projected);
+        }
+        $("#valConf").textContent = "projected in 12 months · " + p.momentum;
+      }
+    }
+    SIR_API.apiLead({ kind: "valuation", address: addr, estimate: d.value,
+      meta: { community: d.community, source: d.source, projected: p ? p.projected : null, forecastPct: p ? Number(p.pct.toFixed(2)) : null } }).catch(() => {});
   } catch (e) {
     toast("Couldn't estimate that address — try adding the city (e.g. “…, Malibu”).");
     $("#valNum").textContent = "—";

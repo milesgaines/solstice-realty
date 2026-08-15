@@ -67,11 +67,14 @@
     return d; // { value, low, high, source, label, community }
   }
 
+  // Returns the whole payload — `updated` is the feed's own timestamp and the
+  // market section renders it as the "live" stamp. Callers that only want the
+  // rows read `.markets`.
   async function apiMarket() {
     const res = await withTimeout(fetch(`${FN}/sir-market`, { headers: HEADERS }), TIMEOUT);
     const d = await res.json().catch(() => ({}));
     if (!res.ok || d.error) throw new Error(d.error || "market " + res.status);
-    return d.markets || [];
+    return { updated: d.updated || null, markets: d.markets || [] };
   }
 
   window.SIR_API = { apiListings, apiSearch, apiLead, apiValuation, apiMarket, url: SUPABASE_URL, ready: true };
