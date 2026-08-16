@@ -29,7 +29,91 @@
 /* ---------- Saved-collection toggle (nav ♥) active state ---------- */
 .m-link.on{color:var(--au,#c9a96e)}
 
+/* ============================================================================
+   LIVE MARKET + 12-MONTH PROJECTIONS
+   Green = rising, red = softening, neutral = flat. The signed delta is the
+   loudest thing on the card because the sign is the whole message.
+   ========================================================================== */
+:root{
+  --up:#5fc08a;
+  --up-bg:rgba(95,192,138,.12);
+  --up-brd:rgba(95,192,138,.34);
+  --down:#e0806f;
+  --down-bg:rgba(224,128,111,.12);
+  --down-brd:rgba(224,128,111,.34);
+}
+
+/* --- live status strip above the grid --- */
+.market-status{display:inline-flex; align-items:center; gap:.55rem; margin:0 0 1.1rem;
+  font-family:var(--body,sans-serif); font-size:.78rem; color:var(--tx-2,#aab0a7)}
+.market-status .live-dot{width:7px; height:7px; border-radius:50%; background:var(--up,#5fc08a);
+  box-shadow:0 0 0 0 rgba(95,192,138,.55); animation:sirPulse 2.4s infinite}
+@keyframes sirPulse{
+  0%{box-shadow:0 0 0 0 rgba(95,192,138,.5)}
+  70%{box-shadow:0 0 0 7px rgba(95,192,138,0)}
+  100%{box-shadow:0 0 0 0 rgba(95,192,138,0)}
+}
+@media(prefers-reduced-motion:reduce){ .market-status .live-dot{animation:none} }
+
+/* --- momentum chip next to the community name --- */
+.market-card .mc-name{display:flex; align-items:center; gap:.6rem; flex-wrap:wrap}
+.mc-mom{font-family:var(--body,sans-serif); font-size:.62rem; font-weight:600; letter-spacing:.04em;
+  text-transform:uppercase; padding:.2rem .5rem; border-radius:var(--r-pill,999px);
+  border:1px solid var(--line,rgba(255,255,255,.09)); color:var(--tx-2,#aab0a7)}
+.mc-mom.up{color:var(--up); border-color:var(--up-brd); background:var(--up-bg)}
+.mc-mom.down{color:var(--down); border-color:var(--down-brd); background:var(--down-bg)}
+
+/* --- the projection row --- */
+.mc-forecast{display:flex; align-items:center; gap:.7rem; margin-top:.9rem; padding:.6rem .75rem;
+  border-radius:var(--r-sm,13px); border:1px solid var(--line,rgba(255,255,255,.09));
+  background:rgba(255,255,255,.035)}
+.mc-forecast.up{border-color:var(--up-brd); background:var(--up-bg)}
+.mc-forecast.down{border-color:var(--down-brd); background:var(--down-bg)}
+.mc-forecast .fc-delta{font-family:var(--sans,sans-serif); font-weight:700; font-size:1.22rem;
+  line-height:1; letter-spacing:-.01em; color:var(--tx-2,#aab0a7); flex:none;
+  font-variant-numeric:tabular-nums}
+.mc-forecast.up .fc-delta{color:var(--up)}
+.mc-forecast.down .fc-delta{color:var(--down)}
+.mc-forecast .fc-meta{display:flex; flex-direction:column; gap:.1rem; min-width:0}
+.mc-forecast .fc-meta b{font-family:var(--body,sans-serif); font-weight:600; font-size:.72rem;
+  letter-spacing:.03em; text-transform:uppercase; color:var(--tx,#f3f5f1)}
+.mc-forecast .fc-proj{font-family:var(--body,sans-serif); font-size:.74rem; color:var(--tx-2,#aab0a7);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+
+/* four stats now (rent joined the row) — grid keeps them from wrapping ragged */
+.market-card .mc-stats{display:grid; grid-template-columns:1fr 1fr; gap:.9rem 1.2rem}
+
+/* The median value is wrapped in a span so the odometer can roll it — undo the
+   small-label styling that `.mc-price span` would otherwise hand it. */
+.mc-price .mc-val{font-family:inherit; font-size:inherit; font-weight:inherit; color:inherit;
+  letter-spacing:inherit; text-transform:none}
+
+/* Rolling digits must not reflow the layout while they count. */
+.mc-price,.mc-stats b,.fc-delta,.fc-proj,.vf-delta,.val-forecast .vf-text b,
+.card-price,.md-price,#count{font-variant-numeric:tabular-nums}
+
+.market-note{margin:1.4rem 0 0; max-width:62ch; font-family:var(--body,sans-serif);
+  font-size:.76rem; line-height:1.65; color:var(--tx-3,#7e847b)}
+
+/* --- projected value inside the valuation card --- */
+.val-forecast{display:flex; align-items:center; gap:.75rem; margin-top:1rem; padding:.7rem .85rem;
+  border-radius:var(--r-sm,13px); border:1px solid var(--line,rgba(255,255,255,.09));
+  background:rgba(255,255,255,.035); text-align:left}
+.val-forecast.up{border-color:var(--up-brd); background:var(--up-bg)}
+.val-forecast.down{border-color:var(--down-brd); background:var(--down-bg)}
+.val-forecast .vf-delta{font-family:var(--sans,sans-serif); font-weight:700; font-size:1.3rem;
+  line-height:1; color:var(--tx-2,#aab0a7); flex:none; font-variant-numeric:tabular-nums}
+.val-forecast.up .vf-delta{color:var(--up)}
+.val-forecast.down .vf-delta{color:var(--down)}
+.val-forecast .vf-text{display:flex; flex-direction:column; gap:.12rem; min-width:0}
+.val-forecast .vf-text b{font-family:var(--sans,sans-serif); font-weight:600; font-size:1.02rem;
+  color:var(--tx,#f3f5f1); font-variant-numeric:tabular-nums}
+.val-forecast .vf-text span{font-family:var(--body,sans-serif); font-size:.74rem; color:var(--tx-2,#aab0a7)}
+.val-forecast[hidden]{display:none}
+
 @media(max-width:640px){
   .offmarket{padding:1rem 1.1rem}
   .offmarket .om-call{width:100%; justify-content:center}
+  .mc-forecast .fc-delta{font-size:1.1rem}
+  .market-status{font-size:.72rem}
 }

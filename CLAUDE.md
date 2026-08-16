@@ -73,6 +73,10 @@ css/immersive.css   ⚠️ ORPHANED — not referenced by any page
 js/data.js          BRAND facts, COMMUNITIES, COORDS, and the bundled LISTINGS fallback.
                     Exposes window.SOLSTICE.
 js/api.js           Supabase edge-function client. Exposes window.SIR_API.
+js/predict.js       Live 12-month market projections off the sir-market feed.
+                    Exposes window.SIR_PREDICT. See "Live money & predictions".
+js/odometer.js      Count-up animator for every $ amount / figure on the page.
+                    Exposes window.SIR_ODOMETER. See "Rolling numbers".
 js/idx.js           Direct-from-browser IDX/MLS adapter (SimplyRETS). Loaded but its
                     fetchMLS() is never called — app.js uses SIR_API instead. See below.
 js/app.js           Main app logic: filters, sort, cards, detail modal, mortgage calc,
@@ -182,6 +186,74 @@ puts `pin` first, then `featured`, then the user's chosen sort. Preserve that or
 **CRM pages carry `<meta name="robots" content="noindex, nofollow">`.** Keep it on any new
 CRM page.
 
+## Live money & predictions
+
+The money on the public site is real and server-sourced — nothing about it is
+hard-coded per community:
+
+- **`sir-market`** returns live RentCast figures per zip (`medianPrice`, `medianRent`,
+  `pricePerSqft`, `daysOnMarket`, `newListings`, `totalListings`) plus an `updated`
+  stamp. `apiMarket()` returns the **whole payload** (`{updated, markets}`), not just
+  the rows — the `updated` stamp drives the "live" badge above the grid.
+- **`sir-valuation`** returns a real AVM value/range for a typed address.
+
+`js/predict.js` turns that live payload into a 12-month projection per community.
+It never invents a number — every input comes off the wire:
+
+| Signal | Source | Meaning |
+|--------|--------|---------|
+| Pace | `daysOnMarket` vs. a 55-day balanced baseline | fast sales push prices up |
+| Supply | `totalListings ÷ newListings` vs. a baseline of 28 | a stale shelf drags prices down |
+| Yield | `medianRent × 12 ÷ medianPrice` vs. 3.0% | the affordability anchor prices revert toward |
+| **Drift** | measured change between stored snapshots | what actually happened |
+
+Signals are scored around `BASE_TREND` (long-run nominal appreciation) and clamped to
+a −9%…+14% band. Every successful feed is snapshotted to `localStorage.sir_market_history`
+(throttled to 6h, capped at 40); once snapshots span 3+ days, real observed drift blends
+in, its weight ramping to 55% at 60 days. So the longer a visitor's browser has watched
+the market, the more the projection leans on measured reality instead of the model.
+
+`projectValue(value, community)` reuses the matching community's forecast to project an
+AVM result forward, falling back to the listing-weighted coastal average.
+
+**Tuning lives in the constants at the top of `predict.js`** — baselines, weights, clamps.
+Change those, not the call sites. If the feed is unreachable the whole market section
+hides and the valuation projection stays hidden: never show a made-up trend.
+
+Projections are labelled as modelled estimates, not appraisals, in the UI. Keep that
+disclosure on any new surface that shows one — this is a licensed brokerage.
+
+## Rolling numbers
+
+Every dollar amount and figure counts up via `js/odometer.js`. The markup contract keeps
+the **final text in the HTML**, so the number is correct with JS off, with reduced motion,
+or if the odometer never loads:
+
+```html
+<b data-num="2450000" data-fmt="money">$2,450,000</b>
+```
+
+`data-fmt`: `money` ($2,450,000) · `moneyc` ($2.45M) · `int` (2,450) · `pct` (+3.2%) ·
+`dec1` (5.5) · `year` (2021, never grouped).
+
+Elements are armed once and roll when scrolled into view (IntersectionObserver), then snap
+to their exact original text. **Anything injected after a fetch must call
+`SIR_ODOMETER.scan(container)`** — GSAP/ScrollTrigger only scan the DOM at boot, so the
+existing `[data-count]` path in `motion.js` (hero stats) cannot see dynamic content.
+Pass `scan(el, true)` to roll immediately for content the user just opened, like the
+detail modal, whose figures sit below the fold in their own scroller.
+Use the `roll()` / `rollPrice()` / `rollText()` helpers in `app.js` when building card
+templates; they leave non-numeric strings ("Price Upon Request") untouched, and
+`rollText()` escapes then rolls the figures inside backend copy.
+
+What deliberately does **not** roll: phone numbers, addresses, zips, DRE#, the © year,
+label copy ("12-mo outlook"), and the payment estimator's live slider readouts — a
+count-up there would fight the thumb. `updateCalc(true)` rolls the estimator when it
+opens; drags call `updateCalc()` for an instant response.
+
+`dashboard.html` carries its own ~20-line inline copy (`roll()` + `rollScan()`) for the
+tiles, funnel and portfolio figures, since CRM pages never load anything from `js/`.
+
 ## Listing object shape
 
 The shared shape across `data.js`, the `sir-properties` feed, and `normalizeRESO()`:
@@ -204,6 +276,23 @@ The shared shape across `data.js`, the `sir-properties` feed, and `normalizeRESO
 
 Note the `openHouse`/`open_house` split — `listings.html` reads `l.openHouse || l.open_house`
 and writes `open_house`. Keep accepting both.
+
+## Editor tooling (not shipped)
+
+`.mcp.json` registers the **Magic MCP** (21st.dev — the successor to the Magic Labs
+"magic" CLI, which no longer exists on npm) for AI-assisted UI generation. It is dev-only
+tooling: nothing in it is served, and the static site has no dependency on it.
+
+It needs a free key from https://21st.dev/mcp, exported before starting the editor:
+
+```bash
+export TWENTY_FIRST_API_KEY="…"   # then reopen Claude Code so .mcp.json picks it up
+```
+
+Optional CLIs: `npm i -g @21st-dev/magic` (the `magic` binary) and `@21st-dev/cli`
+(the current `21st` binary — `21st login`, `21st search`, `21st generate`).
+Without a key the MCP starts and cleanly reports "Not authenticated"; it never blocks
+the site. Do not commit the key.
 
 ## Git workflow
 

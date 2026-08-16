@@ -15,7 +15,7 @@
 <link rel="stylesheet" href="css/styles.css">
 <link rel="stylesheet" href="css/theme.css?v=22">
 <link rel="stylesheet" href="css/overhaul.css?v=12">
-<link rel="stylesheet" href="css/addons.css?v=2">
+<link rel="stylesheet" href="css/addons.css?v=3">
 <script src="js/atmos-ui.js?v=2"></script>
 </head>
 <body>
@@ -156,11 +156,18 @@
     <div class="sec-head reveal">
       <div class="eyebrow">The market, live</div>
       <h2>Coastal California, by the numbers</h2>
-      <p>Real-time market intelligence across Donna's communities — median values, price per square foot, and pace of sale, refreshed from live market data.</p>
+      <p>Real-time market intelligence across Donna's communities — median values, rents, and pace of sale from the live feed, each with a 12-month projection modelled off that same data.</p>
+    </div>
+    <div class="market-status" id="marketStatus" hidden>
+      <span class="live-dot"></span><span id="marketStatusText">Live</span>
     </div>
     <div class="market-grid" id="marketGrid">
       <div class="market-loading">Loading live market data…</div>
     </div>
+    <p class="market-note" id="marketNote" hidden>
+      Projections are modelled estimates from live market signals — pace of sale, standing
+      inventory and rent yield — not appraisals. Ask Donna for a valuation on a specific home.
+    </p>
   </div>
 </section>
 
@@ -184,6 +191,10 @@
         <div class="val-bar"><b id="valBar"></b></div>
         <div class="val-range" id="valRange"></div>
         <div class="val-source" id="valSource" style="font-family:var(--mono);font-size:.68rem;letter-spacing:.06em;color:#8f978f;margin-top:.5rem"></div>
+        <div class="val-forecast" id="valForecast" hidden>
+          <span class="vf-delta" id="valDelta">—</span>
+          <span class="vf-text"><b id="valProj">—</b><span id="valConf"></span></span>
+        </div>
         <a class="btn btn-gold" href="#contact" style="margin-top:1.4rem">Get Donna's Expert Valuation</a>
       </div>
     </div>
@@ -310,12 +321,14 @@
 <!-- app core -->
 <script src="js/data.js?v=3"></script>
 <script src="js/idx.js?v=2"></script>
-<script src="js/api.js?v=4"></script>
-<script src="js/app.js?v=7"></script>
+<script src="js/api.js?v=5"></script>
+<script src="js/predict.js?v=1"></script>
+<script src="js/odometer.js?v=2"></script>
+<script src="js/app.js?v=9"></script>
 <!-- immersive layer (aurora removed for readability + mobile perf) -->
 <script defer src="js/globe.js"></script>
 <script defer src="js/motion.js?v=3"></script>
-<script defer src="js/overhaul.js?v=5"></script>
+<script defer src="js/overhaul.js?v=6"></script>
 <script>
   // populate community grid + filter dropdown from data
   (function(){
@@ -329,23 +342,64 @@
     COMMUNITIES.forEach(c => { const o = document.createElement("option"); o.value = c.key; o.textContent = c.key; sel.appendChild(o); });
   })();
 
-  // Live market insights (RentCast, cached server-side)
+  // Live market insights (RentCast, cached server-side) + 12-month projections.
+  // Every figure below — including the projection — is derived from the live
+  // payload; SIR_PREDICT also snapshots each feed so the projection leans more
+  // on observed movement the longer this browser has been watching the market.
   (function(){
     const grid = document.getElementById("marketGrid");
     if (!grid || !window.SIR_API || !SIR_API.apiMarket) return;
+    const P = window.SIR_PREDICT;
+    const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
     const money = n => n == null ? "—" : n >= 1e6 ? "$" + (n / 1e6).toFixed(n % 1e6 ? 2 : 1).replace(/\.0$/, "") + "M" : "$" + Math.round(n).toLocaleString();
-    SIR_API.apiMarket().then(markets => {
+
+    SIR_API.apiMarket().then(res => {
+      const markets = Array.isArray(res) ? res : (res && res.markets) || [];
       if (!markets.length) { grid.innerHTML = ""; document.getElementById("market").style.display = "none"; return; }
-      grid.innerHTML = markets.map(m => `
-        <div class="market-card" onclick="filterByCommunity('${m.community}')">
-          <div class="mc-name">${m.community}</div>
-          <div class="mc-price">${money(m.medianPrice)}<span>median value</span></div>
+      const rows = P ? P.enrich(markets) : markets;
+
+      grid.innerHTML = rows.map(m => {
+        const f = m.forecast;
+        // Every figure carries its final text plus data-num, so the odometer
+        // can roll it on scroll and it still reads correctly if it never does.
+        const n = (v, fmt, text) => v == null
+          ? `<b>—</b>`
+          : `<b data-num="${v}" data-fmt="${fmt}">${text}</b>`;
+        const proj = f && f.projected
+          ? `<span class="fc-proj">→ <span data-num="${f.projected}" data-fmt="moneyc">${money(f.projected)}</span> projected</span>` : "";
+        const forecastRow = f ? `
+          <div class="mc-forecast ${f.direction}" title="${esc(f.confidenceLabel)} · ${esc(f.signals.map(s => s.label).join(" · "))}">
+            <span class="fc-delta" data-num="${f.pct.toFixed(2)}" data-fmt="pct">${P.fmtPct(f.pct)}</span>
+            <span class="fc-meta"><b>12-mo outlook</b>${proj}</span>
+          </div>` : "";
+        return `
+        <div class="market-card" onclick="filterByCommunity('${esc(m.community)}')">
+          <div class="mc-name">${esc(m.community)}${f ? `<span class="mc-mom ${f.direction}">${esc(f.momentum)}</span>` : ""}</div>
+          <div class="mc-price"><span class="mc-val" data-num="${m.medianPrice || 0}" data-fmt="moneyc">${money(m.medianPrice)}</span><span>median value</span></div>
+          ${forecastRow}
           <div class="mc-stats">
-            <div><b>$${m.pricePerSqft ? m.pricePerSqft.toLocaleString() : "—"}</b><span>per sq ft</span></div>
-            <div><b>${m.daysOnMarket ?? "—"}</b><span>days on market</span></div>
-            <div><b>${m.totalListings ?? "—"}</b><span>active listings</span></div>
+            <div>${n(m.pricePerSqft, "money", "$" + (m.pricePerSqft || 0).toLocaleString())}<span>per sq ft</span></div>
+            <div>${n(m.medianRent, "money", money(m.medianRent))}<span>median rent</span></div>
+            <div>${n(m.daysOnMarket, "int", String(m.daysOnMarket))}<span>days on market</span></div>
+            <div>${n(m.totalListings, "int", (m.totalListings || 0).toLocaleString())}<span>active listings</span></div>
           </div>
-        </div>`).join("");
+        </div>`; }).join("");
+      if (window.SIR_ODOMETER) SIR_ODOMETER.scan(grid);
+
+      // Live badge — real feed timestamp, plus how long we've been tracking.
+      const status = document.getElementById("marketStatus");
+      const text = document.getElementById("marketStatusText");
+      const note = document.getElementById("marketNote");
+      if (status && text && P) {
+        const stamp = res && res.updated ? P.ago(res.updated) : "";
+        const tracked = rows.map(m => m.forecast && m.forecast.observed)
+                            .filter(Boolean).sort((a, b) => b.days - a.days)[0];
+        text.textContent = "Live market feed" + (stamp ? " · updated " + stamp : "")
+          + (tracked ? " · tracking movement for " + tracked.days + " days" : "");
+        status.hidden = false;
+      }
+      if (note) note.hidden = false;
     }).catch(() => { document.getElementById("market").style.display = "none"; });
   })();
 
