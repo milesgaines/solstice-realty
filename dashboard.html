@@ -120,6 +120,27 @@ const esc = s => (s||"").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&
 const money = n => "$" + Number(n||0).toLocaleString("en-US");
 const short = n => { n=Number(n||0); return n>=1e6?"$"+(n/1e6).toFixed(n>=1e7?0:1)+"M":n>=1e3?"$"+Math.round(n/1e3)+"K":"$"+n; };
 const safeUrl = u => { u=String(u==null?"":u); return /^(https?:|tel:|mailto:)/i.test(u)?u:"#"; };
+/* Count-up for the tiles. Self-contained on purpose — the CRM pages never load
+   anything from js/ (see CLAUDE.md). Markup keeps the final text, so a figure is
+   right even under reduced motion. `roll` marks a value: <span data-num data-fmt>. */
+const REDUCED_M = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const roll = (val, fmt, text) => (val==null || !isFinite(val)) ? text
+  : `<span data-num="${val}" data-fmt="${fmt}">${text}</span>`;
+function rollScan(root){
+  (root||document).querySelectorAll("[data-num]:not([data-armed])").forEach(el=>{
+    el.setAttribute("data-armed","");
+    const final=el.textContent, target=parseFloat(el.getAttribute("data-num")), kind=el.getAttribute("data-fmt")||"int";
+    if(!isFinite(target)||REDUCED_M){ el.textContent=final; return; }
+    const fmtv=v=> kind==="money" ? "$"+Math.round(v).toLocaleString("en-US")
+      : kind==="short" ? (v>=1e6?"$"+(v/1e6).toFixed(v>=1e7?0:1)+"M":v>=1e3?"$"+Math.round(v/1e3)+"K":"$"+Math.round(v))
+      : kind==="pct" ? Math.round(v)+"%" : Math.round(v).toLocaleString("en-US");
+    const t0=performance.now(), DUR=1100;
+    const step=now=>{ const pr=Math.min(1,(now-t0)/DUR), e=1-Math.pow(1-pr,3);
+      el.textContent=fmtv(target*e); if(pr<1) requestAnimationFrame(step); else el.textContent=final; };
+    el.textContent=fmtv(0); requestAnimationFrame(step);
+    setTimeout(()=>{ el.textContent=final; }, DUR+250);
+  });
+}
 const cssBg = u => u ? `background-image:url('${String(u).replace(/['"()\\]/g,"").replace(/\s/g,"%20")}')` : "";
 
 function boot(){ TOKEN ? show() : (document.getElementById("gate").style.display="block"); }
@@ -161,12 +182,14 @@ function render(d){
   const gen=d.generated_at?new Date(d.generated_at):new Date();
   document.getElementById("asof").textContent = `Here's what needs you today · updated ${gen.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}`;
   const overdue=le.followups_overdue||0, due=(le.followups_due_today||0)+overdue;
+  const hot=le.hot_open||0, nw=le.new_this_week||0, lv=li.live||0, pv=Number(li.portfolio_value||0);
   document.getElementById("tiles").innerHTML=`
-    <div class="tile hot"><div class="n">${le.hot_open||0}</div><div class="l">🔥 Hot to call</div></div>
-    <div class="tile new"><div class="n">${le.new_this_week||0}</div><div class="l">🆕 New this week</div></div>
-    <div class="tile due"><div class="n">${due}</div><div class="l">⏰ Follow-ups${overdue?` · ${overdue} late`:''}</div></div>
-    <div class="tile live"><div class="n">${li.live||0}</div><div class="l">🏡 Live listings</div></div>
-    <div class="tile val"><div class="n">${short(li.portfolio_value)}</div><div class="l">💰 Portfolio value</div></div>`;
+    <div class="tile hot"><div class="n">${roll(hot,"int",String(hot))}</div><div class="l">🔥 Hot to call</div></div>
+    <div class="tile new"><div class="n">${roll(nw,"int",String(nw))}</div><div class="l">🆕 New this week</div></div>
+    <div class="tile due"><div class="n">${roll(due,"int",String(due))}</div><div class="l">⏰ Follow-ups${overdue?` · ${overdue} late`:''}</div></div>
+    <div class="tile live"><div class="n">${roll(lv,"int",String(lv))}</div><div class="l">🏡 Live listings</div></div>
+    <div class="tile val"><div class="n">${roll(pv,"short",short(pv))}</div><div class="l">💰 Portfolio value</div></div>`;
+  rollScan(document.getElementById("tiles"));
 
   const needs = A.length ? `<div class="needs">${A.map(nlead).join("")}</div>`
     : `<div class="allgood"><b>You're all caught up.</b><br>No hot leads waiting on a first call. New ones will show up here the moment they land.</div>`;
@@ -181,7 +204,8 @@ function render(d){
   const tempRows=[["hot",byTemp.hot||0],["warm",byTemp.warm||0],["cold",byTemp.cold||0]].map(([k,v])=>bar(k,v,tmax,k)).join("");
 
   const stg=[["new","New"],["contacted","Contacted"],["qualified","Qualified"],["nurturing","Nurturing"],["won","Won"],["lost","Lost"]];
-  const funnel=stg.map(([k,l])=>`<div class="fstg"><div class="n">${byStage[k]||0}</div><div class="l">${l}</div></div>`).join("");
+  const funnel=stg.map(([k,l])=>{const v=byStage[k]||0;
+    return `<div class="fstg"><div class="n">${roll(v,"int",String(v))}</div><div class="l">${l}</div></div>`;}).join("");
 
   const stChips=Object.entries(byStatus).map(([k,v])=>`<span class="chip">${esc(k)} · ${v}</span>`).join("");
   const oh=OH.length ? OH.map(h=>`<div class="oh"><div class="thumb" style="${cssBg(h.hero)}"></div><div><div class="a">${esc(h.address||'Listing')}</div><div class="t">🗓 ${esc(h.open_house)}</div></div></div>`).join("")
@@ -201,13 +225,13 @@ function render(d){
         <h3 style="margin-top:16px">Where they come from</h3>${srcRows}
       </div>
     </div>
-    <h2>Pipeline <span class="c">win rate ${le.win_rate||0}%</span></h2>
+    <h2>Pipeline <span class="c">win rate ${roll(le.win_rate||0,"pct",(le.win_rate||0)+"%")}</span></h2>
     <div class="funnel">${funnel}</div>
     <div class="panels" style="margin-top:22px">
       <div class="panel">
         <h3>Portfolio</h3>
-        <div style="font-family:var(--sans);font-weight:800;font-size:1.9rem;color:var(--au2)">${money(li.portfolio_value)}</div>
-        <div class="sub" style="margin:.3rem 0 0">${li.total||0} listings · ${li.live||0} live · avg ${money(li.avg_sale_price)}</div>
+        <div style="font-family:var(--sans);font-weight:800;font-size:1.9rem;color:var(--au2)">${roll(Number(li.portfolio_value||0),"money",money(li.portfolio_value))}</div>
+        <div class="sub" style="margin:.3rem 0 0">${roll(li.total||0,"int",String(li.total||0))} listings · ${roll(li.live||0,"int",String(li.live||0))} live · avg ${roll(Number(li.avg_sale_price||0),"money",money(li.avg_sale_price))}</div>
         <div class="lstatus">${stChips}</div>
         <div style="margin-top:14px"><a class="btn-ghost" href="listings.html" style="display:inline-block;text-decoration:none">＋ Manage listings</a></div>
       </div>
@@ -215,6 +239,7 @@ function render(d){
         <h3>Upcoming open houses</h3>${oh}
       </div>
     </div>`;
+  rollScan(document.getElementById("body"));
 }
 function nlead(l){
   const who=esc(l.name || (l.author?('@'+l.author):'') || 'New lead');

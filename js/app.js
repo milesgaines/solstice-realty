@@ -48,6 +48,14 @@ const fmt$ = n => "$" + Math.round(n).toLocaleString();
    always present, so the number is right even if the odometer never runs. */
 const roll = (val, fmt, text) =>
   (val == null || !isFinite(val)) ? text : `<span data-num="${val}" data-fmt="${fmt}">${text}</span>`;
+/* Escapes, then wraps each numeric run in a server-provided string so figures
+   inside backend copy ("… · 15 comparable sales") roll too. */
+const escHtml = s => String(s == null ? "" : s)
+  .replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const rollText = str => escHtml(str).replace(/\d[\d,]*/g, m => {
+  const v = parseFloat(m.replace(/,/g, ""));
+  return isFinite(v) ? `<span data-num="${v}" data-fmt="int">${m}</span>` : m;
+});
 /* Prices that aren't a plain number ("Price Upon Request", "$8,500/mo") keep
    their exact string — only the numeric part rolls. */
 const rollPrice = (n, lease) => !n ? fmtPrice(n, lease)
@@ -178,7 +186,8 @@ window.toggleFav = (id, el) => {
   state.favs.has(id) ? state.favs.delete(id) : state.favs.add(id);
   localStorage.setItem("sir_favs", JSON.stringify([...state.favs]));
   if (el) { el.classList.toggle("on", state.favs.has(id)); el.textContent = state.favs.has(id) ? "♥" : "♡"; }
-  $("#favCount").textContent = state.favs.size;
+  if (window.SIR_ODOMETER) SIR_ODOMETER.roll($("#favCount"), state.favs.size, "int", String(state.favs.size));
+  else $("#favCount").textContent = state.favs.size;
   toast(state.favs.has(id) ? "Saved to your collection" : "Removed from collection");
   if (state.favsOnly) render(); // un-saving from the saved view drops the card live
 };
@@ -196,14 +205,18 @@ function syncCompareTray() {
     const l = state.all.find(x => x.id === id) || LISTINGS.find(x => x.id === id);
     return l ? `<img class="cmp-thumb" src="${l.hero}" title="${l.address}">` : "";
   }).join("");
-  $("#cmpCount").textContent = state.compare.size;
+  if (window.SIR_ODOMETER) SIR_ODOMETER.roll($("#cmpCount"), state.compare.size, "int", String(state.compare.size));
+  else $("#cmpCount").textContent = state.compare.size;
 }
 window.openCompare = () => {
   const rows = [...state.compare].map(id => state.all.find(x => x.id === id) || LISTINGS.find(x => x.id === id)).filter(Boolean);
   if (rows.length < 2) return toast("Add at least 2 homes to compare");
-  const fields = [["Price", l => fmtPrice(l.price, l.lease)], ["Community", l => l.community], ["Beds", l => l.beds],
-    ["Baths", l => l.baths], ["Sq Ft", l => l.sqft?.toLocaleString() || "—"], ["$/Sq Ft", l => l.sqft ? fmt$(l.price / l.sqft) : "—"],
-    ["View", l => l.view], ["Year", l => l.year || "—"], ["Status", l => l.status]];
+  const fields = [["Price", l => rollPrice(l.price, l.lease)], ["Community", l => l.community],
+    ["Beds", l => roll(l.beds, "int", String(l.beds))],
+    ["Baths", l => roll(l.baths, Number.isInteger(l.baths) ? "int" : "dec1", String(l.baths))],
+    ["Sq Ft", l => l.sqft ? roll(l.sqft, "int", l.sqft.toLocaleString()) : "—"],
+    ["$/Sq Ft", l => l.sqft ? roll(Math.round(l.price / l.sqft), "money", fmt$(l.price / l.sqft)) : "—"],
+    ["View", l => l.view], ["Year", l => l.year ? roll(l.year, "year", String(l.year)) : "—"], ["Status", l => l.status]];
   $("#modalContent").innerHTML = `<button class="modal-close" onclick="closeModal()">✕</button>
     <div style="padding:clamp(1.4rem,3vw,2.4rem)">
       <div class="eyebrow">Side by side</div><h2 style="font-size:2.2rem;margin:.4rem 0 1.5rem">Compare Homes</h2>
@@ -215,6 +228,7 @@ window.openCompare = () => {
         ${rows.map(l => `<td style="padding:.7rem;text-align:center;font-size:.95rem">${fn(l)}</td>`).join("")}</tr>`).join("")}
       </table></div></div>`;
   $("#overlay").classList.add("open");
+  if (window.SIR_ODOMETER) SIR_ODOMETER.scan($("#modalContent"), true);
 };
 window.clearCompare = () => { state.compare.clear(); syncCompareTray(); };
 
@@ -269,10 +283,10 @@ window.closeModal = () => $("#overlay").classList.remove("open");
 function calcHTML(price) {
   return `<div class="calc">
     <h4>Payment Estimator</h4>
-    <label>Home Price</label><div class="val" id="cPrice">${fmt$(price)}</div>
+    <label>Home Price</label><div class="val" id="cPrice">${roll(price, "money", fmt$(price))}</div>
     <label>Down Payment · <span id="cDpPct">20%</span></label>
     <input type="range" id="cDp" min="5" max="60" value="20">
-    <div class="val" id="cDpVal"></div>
+    <div class="val" id="cDpVal"><span id="cDpNum">—</span> down</div>
     <label>Interest Rate · <span id="cRate">6.5%</span></label>
     <input type="range" id="cRateS" min="30" max="90" value="65">
     <label>Term</label>
@@ -280,22 +294,32 @@ function calcHTML(price) {
       <button class="on" data-term="30" onclick="setTerm(this,30)">30 yr</button>
       <button data-term="15" onclick="setTerm(this,15)">15 yr</button>
     </div>
-    <div class="pay" id="cPay">—<small> / mo est.</small></div>
+    <div class="pay" id="cPay"><span id="cPayNum">—</span><small> / mo est.</small></div>
     <div class="val" style="color:var(--muted);font-size:.72rem;margin-top:.4rem">Principal & interest only. Contact Donna for a full breakdown.</div>
   </div>`;
 }
 let calcCtx = { price: 0, term: 30 };
 function initCalc(price) { calcCtx = { price, term: 30 };
-  ["cDp", "cRateS"].forEach(id => $("#" + id).addEventListener("input", updateCalc)); updateCalc(); }
-window.setTerm = (el, t) => { $$(".calc .seg button").forEach(b => b.classList.remove("on")); el.classList.add("on"); calcCtx.term = t; updateCalc(); };
-function updateCalc() {
+  ["cDp", "cRateS"].forEach(id => $("#" + id).addEventListener("input", () => updateCalc()));
+  updateCalc(true); }
+window.setTerm = (el, t) => { $$(".calc .seg button").forEach(b => b.classList.remove("on")); el.classList.add("on"); calcCtx.term = t; updateCalc(true); };
+/* `animate` rolls the figures — used when the estimator first appears and when
+   the term flips. Slider drags pass nothing: a count-up would fight the thumb. */
+function updateCalc(animate) {
   const dp = +$("#cDp").value, rate = +$("#cRateS").value / 10;
   $("#cDpPct").textContent = dp + "%"; $("#cRate").textContent = rate.toFixed(1) + "%";
   const loan = calcCtx.price * (1 - dp / 100);
-  $("#cDpVal").textContent = fmt$(calcCtx.price * dp / 100) + " down";
+  const down = calcCtx.price * dp / 100;
   const r = rate / 100 / 12, n = calcCtx.term * 12;
   const pay = r ? loan * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1) : loan / n;
-  $("#cPay").innerHTML = fmt$(pay) + "<small> / mo est.</small>";
+  const O = animate && window.SIR_ODOMETER;
+  if (O) {
+    O.roll($("#cDpNum"), down, "money", fmt$(down));
+    O.roll($("#cPayNum"), pay, "money", fmt$(pay));
+  } else {
+    $("#cDpNum").textContent = fmt$(down);
+    $("#cPayNum").textContent = fmt$(pay);
+  }
 }
 window.requestTour = id => { closeModal();
   const form = document.querySelector("#contact form"); if (form) form.dataset.propId = id;
@@ -431,10 +455,14 @@ window.runValuation = async () => {
     const d = await SIR_API.apiValuation(addr);
     res.classList.add("show");
     $("#valBar").style.width = "0";
-    animateNum($("#valNum"), d.value);
-    $("#valRange").textContent = `Estimated range ${fmt$(d.low)} – ${fmt$(d.high)}`;
+    const O0 = window.SIR_ODOMETER;
+    if (O0) O0.roll($("#valNum"), d.value, "money", fmt$(d.value));
+    else animateNum($("#valNum"), d.value);
+    $("#valRange").innerHTML = `Estimated range <span data-num="${d.low}" data-fmt="money">${fmt$(d.low)}</span> – ` +
+      `<span data-num="${d.high}" data-fmt="money">${fmt$(d.high)}</span>`;
     $("#valComm").textContent = d.community || "your area";
-    const note = $("#valSource"); if (note) note.textContent = d.label || "";
+    const note = $("#valSource"); if (note) note.innerHTML = rollText(d.label || "");
+    if (O0) O0.scan($("#valResult"), true);
     requestAnimationFrame(() => $("#valBar").style.width = d.source === "rentcast" ? "80%" : "62%");
     // 12-month projection off the same live market feed the #market cards use.
     // Hidden entirely when the feed is unreachable — never show a made-up trend.
@@ -522,7 +550,8 @@ window.submitContact = async e => {
 /* ---------- BOOT ---------- */
 function boot() {
   bindControls();
-  $("#favCount").textContent = state.favs.size;
+  if (window.SIR_ODOMETER) SIR_ODOMETER.roll($("#favCount"), state.favs.size, "int", String(state.favs.size));
+  else $("#favCount").textContent = state.favs.size;
   render();
   // Pull live listings from the Solstice backend; keep bundled data if offline.
   if (window.SIR_API) {

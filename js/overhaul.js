@@ -88,7 +88,11 @@
         else n = document.querySelectorAll(".fav.on").length;
       } catch (e) {}
       var b = nav.querySelector(".tb-badge");
-      if (b) { b.textContent = n; b.style.display = n > 0 ? "grid" : "none"; }
+      if (b) {
+        b.style.display = n > 0 ? "grid" : "none";
+        if (window.SIR_ODOMETER) window.SIR_ODOMETER.roll(b, n, "int", String(n));
+        else b.textContent = n;
+      }
     }
     document.addEventListener("click", function (e) {
       if (e.target && e.target.closest && e.target.closest(".fav")) setTimeout(syncBadge, 60);

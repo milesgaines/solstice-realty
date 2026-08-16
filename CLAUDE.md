@@ -242,8 +242,17 @@ to their exact original text. **Anything injected after a fetch must call
 existing `[data-count]` path in `motion.js` (hero stats) cannot see dynamic content.
 Pass `scan(el, true)` to roll immediately for content the user just opened, like the
 detail modal, whose figures sit below the fold in their own scroller.
-Use the `roll()` / `rollPrice()` helpers in `app.js` when building card templates; they
-leave non-numeric strings ("Price Upon Request") untouched.
+Use the `roll()` / `rollPrice()` / `rollText()` helpers in `app.js` when building card
+templates; they leave non-numeric strings ("Price Upon Request") untouched, and
+`rollText()` escapes then rolls the figures inside backend copy.
+
+What deliberately does **not** roll: phone numbers, addresses, zips, DRE#, the © year,
+label copy ("12-mo outlook"), and the payment estimator's live slider readouts — a
+count-up there would fight the thumb. `updateCalc(true)` rolls the estimator when it
+opens; drags call `updateCalc()` for an instant response.
+
+`dashboard.html` carries its own ~20-line inline copy (`roll()` + `rollScan()`) for the
+tiles, funnel and portfolio figures, since CRM pages never load anything from `js/`.
 
 ## Listing object shape
 
