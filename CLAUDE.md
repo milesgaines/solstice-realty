@@ -222,9 +222,43 @@ Real, pre-existing issues. Fix them only if the task asks; don't be surprised by
   and never mentions the Supabase backend or the CRM pages at all.
 - **The CRM triplicates its boilerplate.** Auth gate, `H()`, `esc`, `cssBg`, `safeUrl`,
   login/logout, and the anon key are copy-pasted across `dashboard.html`, `leads.html`, and
-  `listings.html`. A change to auth behavior must be made in all three.
+  `listings.html`. A change to auth behavior must be made in all three. This has already
+  drifted: `listings.html` declares only `esc` and `cssBg` — it has **no `safeUrl`**.
 - **`showFavs()` in `app.js`** (~line 423) is knowingly messy — it renders saved listings by
   overwriting `#listings` directly after `render()`, with a comment admitting the hack.
 - **Photo uploads are base64 data URLs.** `listings.html` downscales client-side to
   1600px/JPEG q0.82 via canvas, then POSTs a data URL to `sir-listings`. Large batches are
   slow and sequential by design.
+
+## Testing
+
+There is **no test suite** — no `package.json`, no runner, no test files. The only CI job
+(`.github/workflows/pages.yml`) checks out and deploys, so every push to `main` reaches
+production with no gate.
+
+`TESTING.md` holds a tiered analysis of where tests would pay off, plus a proposed setup
+(Vitest + jsdom for units, Playwright for the degradation specs) that keeps the zero-build
+constraint intact — devDependencies only, tests in `test/`, a separate `test.yml` workflow,
+`pages.yml` untouched.
+
+Writing it turned up defects that were **confirmed by running the code**, not inferred.
+They are still unfixed; don't rediscover them from scratch:
+
+- **`aiParse()`** (`js/app.js:37`) — the price regex `[\d.,]+\s?[mk]?` is unanchored, so
+  `"10 to 20 minutes from pier"` parses as a $10–$20M range, and in `"2 to 4m"` only the
+  suffixed bound gets the multiplier (`min=2` dollars). `COMMUNITIES.forEach` assigns
+  unconditionally, so `"malibu or calabasas"` resolves by array order, not mention order.
+- **`apply()`** (`js/app.js:77`) — `if (f.beds && l.beds < f.beds)` lets a listing with **no**
+  `beds` through a "4+ bedrooms" filter, since `undefined < 4` is `false`. Same for `baths`.
+  MLS rows routinely arrive with missing fields.
+- **`today()`** (`leads.html:206`) — `toISOString()` is UTC; Donna is Pacific. After ~5pm PT
+  it returns tomorrow, so follow-ups flag overdue a day early and CSVs are misdated.
+- **`js/app.js` does no escaping at all.** `l.tour` lands raw in an `href` (line 227) and
+  `l.id` in an inline `onclick` string literal (line 123). `#f_tour` in `listings.html:188`
+  is unvalidated free text persisted via `sir-listings` — a CRM-to-public stored-XSS path.
+- **`exportCSV()`** (`leads.html:398`) — RFC-4180 quoting is correct but there is no formula
+  guard, so a lead note starting `=`/`+`/`-`/`@` executes in Excel. Lead notes come from the
+  social sweep, i.e. untrusted.
+- **`normalizeRESO()`** (`js/idx.js:69`) — maps `waterfront` from RESO `WaterSource`, which is
+  the water *supply* (`"Public"`, `"Well"`). Nearly every record gets the badge. Dead path
+  today, but `CLAUDE.md` designates this the canonical RESO→app mapping.
