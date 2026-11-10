@@ -4,12 +4,12 @@ Guidance for Claude Code (and other AI assistants) working in this repository.
 
 ## What this repo is
 
-A **static, zero-build website** for Solstice International Realty (Donna Bohana,
-Broker/Owner — coastal California luxury real estate). There is no `package.json`, no
-bundler, no transpiler, no test suite, and no dependency directory. Every file shipped
-is the file served.
+The repo root is a **static, zero-build website** for Solstice International Realty
+(Donna Bohana, Broker/Owner — coastal California luxury real estate). There is no
+`package.json`, no bundler, no transpiler, no test suite, and no dependency directory.
+Every file shipped is the file served.
 
-The repo actually contains **two apps** that happen to share a domain:
+That website is itself **two apps** that happen to share a domain:
 
 | App | Pages | Audience | Styling |
 |-----|-------|----------|---------|
@@ -20,6 +20,17 @@ They are deliberately **not** coupled. The CRM pages do not load anything from `
 `js/` — each is a single-file app. Don't "refactor" them into shared modules without
 being asked; the isolation is what keeps the marketing site's heavy WebGL/GSAP layer out
 of the CRM.
+
+### …and an unrelated side project rides along
+
+`concepts/` and `ios/` hold **BeMeh**, a virtual-esthetician app concept that has nothing
+to do with real estate. It shares this repo only because it shares the git history — no
+realty page links to it, and no BeMeh file imports anything from `css/`, `js/`, or
+`assets/`. See "The BeMeh side project" below.
+
+**Assume a task is about the realty site unless BeMeh, `ios/`, `concepts/`, TestFlight,
+or the esthetician app is named.** Changes to one side never require changes to the
+other.
 
 ## Backend (lives outside this repo)
 
@@ -83,14 +94,20 @@ js/app.js           Main app logic: filters, sort, cards, detail modal, mortgage
                     favorites, compare, Leaflet map, valuation, contact form.
 js/atmos-ui.js      Loader + custom cursor + ambient sound. Loaded in <head>, NOT deferred.
 js/globe.js         globe.gl "Global Portfolio" globe with gold arcs
-js/motion.js        Lenis smooth scroll + GSAP/ScrollTrigger cinematics, [data-count] count-ups
+js/motion.js        GSAP/ScrollTrigger cinematics, [data-count] count-ups. Supports Lenis
+                    smooth scroll but degrades to its own rAF loop — Lenis isn't loaded.
 js/overhaul.js      Mobile bottom tab bar + nav solid-on-scroll
 js/hero-gl.js       ⚠️ ORPHANED — raw-WebGL liquid hero, superseded by the CSS Ken-Burns
 js/atmosphere.js    ⚠️ ORPHANED — raw-WebGL aurora background, removed for readability/perf
 
 assets/img/         Donna's real photos, local same-origin copies (required for WebGL)
-.github/workflows/pages.yml   GitHub Pages deploy
 .nojekyll           Stops Pages from filtering underscore-prefixed paths
+
+.github/workflows/pages.yml       GitHub Pages deploy (whole repo root, on push to main)
+.github/workflows/testflight.yml  iOS compile check + manual TestFlight upload — BeMeh only
+
+concepts/bemeh/     BeMeh pitch page + installable PWA prototype (unrelated to realty)
+ios/BeMeh/          BeMeh SwiftUI iOS app + Xcode project + ship.sh
 ```
 
 ### The three orphans
@@ -122,6 +139,12 @@ same-origin image requirements for WebGL all need it.
 Deploy is automatic: **push to `main`** → `.github/workflows/pages.yml` uploads the repo
 root as a Pages artifact and deploys it. There is no build step to run or verify.
 
+The artifact path is `'.'` — **everything in the repo is published**, including
+`concepts/` and the `ios/` Swift sources. Nothing is excluded and there is no ignore
+list. `concepts/bemeh/` carries `noindex, nofollow` so it stays out of search results,
+but it is still fetchable by URL. Treat any file you add here as public: don't commit
+anything to this repo you wouldn't serve.
+
 ## Conventions to follow
 
 **JS module style.** Every file in `js/` is a *classic* script (no ES modules), wrapped in
@@ -142,13 +165,32 @@ because the HTML uses inline `onclick="..."` attributes throughout.
 **Script order in `index.html` matters.**
 1. `atmos-ui.js` in `<head>`, **not deferred**, so the loader covers first paint.
 2. Libraries from CDN; **Leaflet last** among libraries so nothing clobbers the global `L`.
-3. Core: `data.js` → `idx.js` → `api.js` → `app.js` (each depends on the previous).
+3. Core, in this order — each depends on the ones before it:
+   `data.js` → `idx.js` → `api.js` → `predict.js` → `odometer.js` → `app.js`.
+   `app.js` calls `SIR_PREDICT` and `SIR_ODOMETER` at render time, so both must be
+   parsed before it.
 4. Deferred immersive layer: `globe.js`, `motion.js`, `overhaul.js`.
 
-**Cache busting.** Local CSS/JS are referenced with a `?v=N` query string
-(`theme.css?v=22`, `app.js?v=6`). **Bump the version whenever you edit that file**, or
-returning visitors get a stale cached copy. This is the only cache-invalidation mechanism
-in the project.
+**Lenis is not loaded.** `motion.js` is written against Lenis + GSAP + ScrollTrigger, but
+`index.html` only serves GSAP and ScrollTrigger from CDN. `motion.js` guards with
+`HAS_LENIS` and drives its own rAF loop when Lenis is absent — which is the shipping
+state. Don't "fix" the missing `<script>` tag; adding it changes scroll behavior site-wide.
+
+**Cache busting.** Local CSS/JS are referenced with a `?v=N` query string. **Bump the
+version whenever you edit that file**, or returning visitors get a stale cached copy.
+This is the only cache-invalidation mechanism in the project. Current versions:
+
+```
+styles.css   (none)    data.js      v=3      atmos-ui.js  v=2
+theme.css    v=22      idx.js       v=2      motion.js    v=3
+overhaul.css v=12      api.js       v=5      overhaul.js  v=6
+addons.css   v=3       predict.js   v=1      globe.js     (none)
+                       odometer.js  v=2
+                       app.js       v=9
+```
+
+`styles.css` and `globe.js` ship unversioned. If you edit either, add a `?v=1` so it can
+be busted next time.
 
 **CSS cascade order is load order.** `styles.css` → `theme.css` → `overhaul.css` →
 `addons.css`. Later files intentionally override earlier ones; put a new override in the
@@ -180,8 +222,18 @@ typewriter placeholder). New animation must check it too.
 real DB row wins) after any backend fetch replaces the pool, and the sort in `apply()`
 puts `pin` first, then `featured`, then the user's chosen sort. Preserve that ordering.
 
+**The saved view is a filter, never a pool swap.** `showFavs()` toggles `state.favsOnly`,
+and `render()` sources from `favRows()` instead of `state.all`. It does *not* overwrite
+`#listings` after the fact — an earlier version did, and the comments in `app.js` exist to
+keep it from coming back. Because it's a filter, pin/featured sort order, the map view and
+the compare tray all stay correct through a re-render. `favRows()` resolves ids against the
+active pool **and** the bundled `LISTINGS`, deduped by id, so a home saved off the MLS feed
+doesn't silently vanish when the user flips back to the featured collection. Preserve both
+properties.
+
 **localStorage keys.** `sir_favs` (favorite listing IDs, public site), `sir_leads_token`
-(CRM bearer token, shared across all three CRM pages).
+(CRM bearer token, shared across all three CRM pages), `sir_market_history` (market
+snapshots feeding the drift signal — see "Live money & predictions").
 
 **CRM pages carry `<meta name="robots" content="noindex, nofollow">`.** Keep it on any new
 CRM page.
@@ -277,6 +329,66 @@ The shared shape across `data.js`, the `sir-properties` feed, and `normalizeRESO
 Note the `openHouse`/`open_house` split — `listings.html` reads `l.openHouse || l.open_house`
 and writes `open_house`. Keep accepting both.
 
+## The BeMeh side project
+
+**BeMeh** is a virtual-esthetician concept — video consults with a skincare pro, guided
+face scans, a regimen tracker. It is unrelated to the realty business and shares only
+this repo's git history. It exists in three forms:
+
+| Where | What | Notes |
+|-------|------|-------|
+| `concepts/bemeh/index.html` | Single-file pitch/concept page | 660 lines, all inline. Warm bronze palette, light/dark/system aware. |
+| `concepts/bemeh/app/` | Installable PWA prototype | `index.html` + `manifest.webmanifest` + two icons. Standalone display, `noindex`. |
+| `ios/BeMeh/` | Real SwiftUI app, shipped to TestFlight | The only part of this repo that compiles. |
+
+Nothing links these to each other or to the realty site — each is entered by URL or by
+opening the Xcode project.
+
+### The iOS app
+
+SwiftUI, iOS 17.0+, dark-only, no third-party packages — nothing to resolve, no
+`pod install`. `BeMeh.xcodeproj` is checked in (objectVersion 77, synchronized folders)
+and opens directly in Xcode 16+:
+
+```bash
+open ios/BeMeh/BeMeh.xcodeproj    # pick a simulator, Run
+```
+
+```
+BeMehApp.swift      @main entry
+RootView.swift      TabView shell
+Theme.swift         Palette + type scale (Didot display face)
+Components.swift    Card, Pill, GoldButtonStyle, RingGauge, Monogram
+Models.swift        Esthetician, Appointment, ScanReading, RegimenStep
+AppState.swift      All sample data lives here
+TodayView · ScanView · CameraView · BookView · SessionView · RegimenView
+SignUpView · LegalView · MeetingWebView   (Jitsi over WKWebView)
+```
+
+`project.yml` is an **XcodeGen fallback only** — it regenerates the project if it's ever
+lost (`brew install xcodegen && cd ios/BeMeh && xcodegen generate`). It is not the source
+of truth and has drifted: it still says `MARKETING_VERSION: "0.1"` while the checked-in
+project is at **0.7**. Edit build settings in the Xcode project; if you touch `project.yml`,
+re-sync the version fields by hand.
+
+### Shipping BeMeh to TestFlight
+
+Two paths, both documented in detail in `ios/BeMeh/README.md`:
+
+- **`.github/workflows/testflight.yml`** — a `compile` job (no signing, no secrets) and a
+  `testflight` job that archives with cloud signing and uploads. The upload job is
+  `workflow_dispatch` only. It needs four repo secrets (`APPSTORE_ISSUER_ID`,
+  `APPSTORE_KEY_ID`, `APPSTORE_P8`, `APPLE_TEAM_ID`) and fails fast with a clear error
+  listing any that are missing. Build number = `GITHUB_RUN_NUMBER`.
+- **`ios/BeMeh/ship.sh`** — the same pipeline from a Mac, no GitHub involvement. It clones
+  a fresh copy of the repo to a temp dir and builds that, so it can be run from anywhere.
+
+⚠️ **`ship.sh` has the owner's real Apple account identifiers hardcoded** (key ID, issuer
+ID, team ID, bundle ID). These are identifiers rather than credentials — the actual secret
+is the `.p8` private key, which is *not* committed and which the script expects to find in
+`~/Downloads` or at `$P8_PATH`. Don't paste a `.p8` into this repo, and don't swap these
+IDs for someone else's without being asked.
+
 ## Editor tooling (not shipped)
 
 `.mcp.json` registers the **Magic MCP** (21st.dev — the successor to the Magic Labs
@@ -296,10 +408,12 @@ the site. Do not commit the key.
 
 ## Git workflow
 
-- Deploys fire on push to `main`, so anything merged is live immediately.
+- Default branch is `main`. Deploys fire on push to `main`, so anything merged is live
+  immediately.
 - Commit subjects in this repo are short and imperative, no conventional-commit prefixes:
   `Add Listings Manager (view/add/edit/delete + photo upload)`,
   `Listings: add MLS #, virtual-tour link, open-house`.
+- Feature work happens on `claude/<topic>-<suffix>` branches merged into `main` via PR.
 - Do not open a pull request unless explicitly asked.
 
 ## Known rough edges
@@ -308,12 +422,17 @@ Real, pre-existing issues. Fix them only if the task asks; don't be surprised by
 
 - **`README.md` is stale.** It describes a `solstice-app/` subdirectory (the repo root is
   the app), documents `js/idx.js` as the live MLS path (superseded by the Supabase proxy),
-  and never mentions the Supabase backend or the CRM pages at all.
+  lists `hero-gl.js` and `atmosphere.js` as live features (both orphaned), and never
+  mentions the Supabase backend, the CRM pages, `predict.js`, `odometer.js`, or BeMeh.
+- **`ios/BeMeh/README.md` is partly stale too.** It describes five screens and says
+  "nothing talks to a network"; the app has since grown sign-up, legal-consent, a real
+  camera view, and a Jitsi meeting web view, which very much does.
 - **The CRM triplicates its boilerplate.** Auth gate, `H()`, `esc`, `cssBg`, `safeUrl`,
   login/logout, and the anon key are copy-pasted across `dashboard.html`, `leads.html`, and
   `listings.html`. A change to auth behavior must be made in all three.
-- **`showFavs()` in `app.js`** (~line 423) is knowingly messy — it renders saved listings by
-  overwriting `#listings` directly after `render()`, with a comment admitting the hack.
+- **`testflight.yml`'s push trigger points at a merged branch.** It fires the compile job
+  on pushes to `claude/virtual-esthetician-app-gjdls9`, which no longer exists — so in
+  practice only `workflow_dispatch` runs it. Harmless, but don't read it as live CI.
 - **Photo uploads are base64 data URLs.** `listings.html` downscales client-side to
   1600px/JPEG q0.82 via canvas, then POSTs a data URL to `sir-listings`. Large batches are
   slow and sequential by design.
